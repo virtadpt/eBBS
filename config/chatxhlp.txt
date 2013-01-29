@@ -1,0 +1,19 @@
+# This is the extra Chat client help file, used by the /x command.
+# Blank lines do get displayed. Don't use tabs in here.
+#
+
+INPUT LINE EDITING CONTROLS:
+Ctrl-A     Beginning of line
+Ctrl-B     Backward one character
+Ctrl-D     Delete character under cursor
+Ctrl-E     End of line
+Ctrl-F     Forward one character
+Ctrl-H     Delete character before cursor
+Ctrl-U     Clear entire line
+Ctrl-W     Delete word under or prior to cursor
+ESC B      Backward one word
+ESC F      Forward one word
+
+ROOM FLAGS used with /f command:
+l          Locked: Only users invited with /i can enter
+s          Secret: Room and users invisible to /u and /w

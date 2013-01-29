@@ -1,0 +1,27 @@
+# EBBS Modes file
+#
+# The first 11 modes are used by the system. Users may get confused if
+# you change the meaning of these. 0, 1, and 2 should not be set.
+#
+# From mode 11 up, they are defined locally to be used in the menu.desc
+# file as an argument in the "exec" and "exec.pause" menu commands.
+#
+# Format: <mode-number>:<mode-char>:<mode-string>:<pageable>
+#
+# The maximum allowed mode number is 31.
+# Mode-string may be up to 9 characters. Mode-char is a single character.
+# These are what shows up in the (U)sers, (L)ist, and (M)onitor commands.
+# Place an 'N' in the <pageable> field to denote that a user in
+# this mode cannot be paged under any circumstances. This is a GOOD idea
+# for any mode you add!
+#
+3:M:Mail:
+4:R:Reading:
+5:P:Posting:
+6:U:UL/DL:N
+7:C:Chat:
+8:m:Monitor:
+9:T:Talk:
+10:p:Page:
+# The following might go with the (A)dmin/(S)hell example in menu.desc.
+#11:S:Shell:N

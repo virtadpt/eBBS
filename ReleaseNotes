@@ -1,0 +1,184 @@
+This is Eagles BBS 3.1.1. This release was done mainly to merge
+in a few neat things I've written for the Eagle's Nest BBS, and 
+that have been passed along by other sysops. See the ChangeLog
+for more details.
+
+The only semi-serious bug I've found in EBBS 3.1 is a buffer in 
+the chat daemon that could get overflowed by a long hostname. Now, 
+I doubt anyone can encode the typical buffer overflow nastiness into 
+a hostname and not have name servers choke on it, but who knows.
+
+UPGRADING FROM EBBS-3.1 TO EBBS-3.1.1:
+
+The new MoveMessage feature for moving posts from one board to 
+another requires that a couple of lines be added to your existing
+~bbs/etc/access and ~bbs/etc/menu.desc files.
+
+To you access file, add these lines right after the FileChdir entry:
+
+# C_MOVEMESSAGE 98   Move a post from one board to another
+MoveMessage=ALL
+
+You may leave the access set to ALL to allow any user to move their
+own posts. Board managers can move them off of their boards also.
+
+To your menu.desc file, add this to the readmenu "Main":
+
+('t',  $PostMove,          $$P,  MoveMessage,
+"t               Toss (move) post to another board")
+
+I chose 't' for Toss since it seemed like the best available fit.
+As always, you may assign your own keys and help text.
+
+The ReleaseNotes for version 3.1 follow. If you are upgrading 
+from something EARLIER then 3.1, please follow the instructions
+below FIRST, then complete the above for the 3.1-3.1.1 move.
+
+---------------------------------------------------------------------
+
+This is the official release of Eagles BBS 3.1. It's been over
+two years since the EBBS 3.0.1 release. There have been quite
+a few changes over those years, and it's never been really unstable,
+but I've been too busy with other things to put together a release.
+
+I wanted to set up this package to use GNU autoconf. It didn't
+get done. You still have to edit the Makefile and osdeps.h.
+
+Two new features were added in 3.1-BETA2. First are the /ignore
+and /unignore commands in chat. Also, 8-bit character set support 
+and ability to change and save character set mappings on the fly. 
+
+Two new features were added in 3.1-BETA3. The file areas now allow
+navigation of directories below the one listed in the ftplist.
+Also, the PBBS library was patched to allow ANSI color to be used
+the the code and in strings read from the config files. Be sure
+to add -DCOLOR to the Makefile CCFLAGS is you want this. The color
+support is very crude, but it's a starting point for hackers to
+do something better with if desired.
+
+The only changes since 3.1-BETA3 are bug fixes.
+
+--- If you are upgrading from EBBS 3.1-BETA3 ---
+
+No config file changes are necessary; just build and install the
+binaries.
+
+--- If you are upgrading from EBBS 3.1-BETA2 ---
+
+No config file changes are necessary; just build and install the
+binaries. If you are using the file boards, you may want to clean
+up ~bbs/etc/ftplist a bit, as only the root directory of a directory
+tree you want to be available need be listed now, as opposed to 
+every directory having to be there as in the past.
+
+--- If you are upgrading from EBBS 3.1-BETA ---
+
+Five bbs config files were changed between 3.1-BETA and 3.1-BETA-2.
+You should copy chathlp.txt and protos to your ~bbs/etc directory.
+The access, bbconfig, and menu.desc also have additions. Add these
+entries:
+
+To your access file, after C_XYZMENU (entry 95):
+# C_SETCHARSET  96   Set charset (if 8-bit support not needed, use NONE)
+SetCharset=ALL
+
+To your bbconfig file:
+locale=
+
+To your menu.desc file, in the (X)yz Menu description:
+("Language", "Language", "Language", SetCharset,  $SetCharset,
+"(L)anguage      Set language-dependent character mapping")
+
+Finally, copy the charset files from the config directory to ~bbs/etc
+if you wish to use the 8-bit support.
+
+--- If you are upgrading from EBBS 3.0 or 3.01 ---
+
+There are some cool new features in this version. Most noticable is the
+new menus. That was the #1 gripe about EBBS up until now from what I can
+tell, that there wasn't a friendly menu system like you see on dialup bbses.
+Well it's there now, but still not in color. Maybe somebody will try to
+rip out the old PBBS stuff and link with ncurses instead.
+
+Note the new (M)enus function in the Xyz Menu. Be sure you get that entry
+into your existing menu.desc is you are already running EBBS. That lets 
+you revert to the old tried-and-true (and faster) menus.
+
+Also we have two-way Internet mail capability now. I have written about it
+in the EBBS-Guide, Chapter VII Section 2, "Internet Mail Support".
+A couple of new files in this distribution are part of this new feature:
+~bbs/bin/bbsmaild and ~bbs/etc/mailers. Be sure you copy those to your
+bbs directories.
+
+Also, the readmenus are now configurable (somewhat) and are defined in
+~bbs/etc/menu.desc. If you already have a bbs, be SURE to cut the bottom
+part with the readmenus out of the menu.desc in this distribution and
+paste them into yours. Also don't to add forget (X)yz/(M)enus and
+(X)yz/(L)anguage, as these are new in EBBS 3.1.
+
+The chat daemon will display a message-of-the-day upon entry now, if
+you put said message in ~bbs/etc/chat.motd.
+
+In ~bbs/etc/bbconfig, the "mailer" entry is no longer used since there 
+is a mailers files now. You can remove it. "reservedslots" is a new
+option which allows you to reserve any number of slots for sysops,
+allowing you access when others can't get in. "locale" is a new
+option for setting the default locale for character typing and
+collating, as in setlocale(3).
+
+Finally, there are a few things new in the ~bbs/etc/access file. 
+You MUST put these new entries in the right place or things are not
+going to work properly! In fact you may consider just using the new
+access file and setting up the permissions the same way you had them
+before, to be safe. Here are the new entries:
+
+# C_SETCLIOPTS  82   Set client options (i.e. expert/novice menus)
+SetCliOpts=ALL
+
+(C_SEEALLINFO through C_NOTIMEOUT are now 83-88. They must be AFTER
+ C_SETCLIOPTS in the access file.)
+
+# C_USERESERVED 89   Can use specially reserved user table slots.
+UseReserved=Sysop
+# C_EXTERNMAIL  90   May send/receive external e-mail.
+ExternalMail=Sysop
+# C_ADMINMENU   91   Admin Menu access
+AdminMenu=Sysop,AccountMgr,BoardMgr
+# C_FILEMENU    92   File Menu access
+FileMenu=ALL
+# C_MAILMENU    93   Mail Menu access
+MailMenu=ALL
+# C_TALKMENU    94   Talk Menu access
+TalkMenu=ALL
+# C_XYZMENU     95   Xyz Menu access
+XyzMenu=ALL
+# C_SETCHARSET  96   Set charset (if 8-bit support not needed, use NONE)
+SetCharset=ALL
+
+SUMMARY of things to do to upgrade from 3.0 or 3.01 to 3.1:
+
+-- Update ~bbs/etc/access, ~bbs/etc/menu.desc, ~bbs/etc/bbconfig,
+   ~bbs/etc/chathlp.txt, ~bbs/etc/protos as directed above or replace them
+
+-- Copy new config files (mailers, modes if you don't have 3.01) to
+   ~bbs/etc
+
+-- Copy all executables (lbbs, chatd, addacct, delacct, bbslog, bbfinger,
+   bbsmaild) to ~bbs/bin, and make bbsmail a link to bbsmaild if you like
+
+-- If 2-way mail is desired, fix your sendmail.cf file to route bbs mail
+   to bbsmaild (helpful hints in EBBS-Guide)
+
+-- If you're using boardclean, get the new cleanpkg.tar.gz from datasync
+   and put the new executable into ~bbs/bin
+
+Lotd of changes and stuff. If you find any bugs, tell me about them.
+Especially if you have trouble compiling. I only have Linux and limited, 
+sporadic access to other operating systems so I count on you folks
+to let me know when things break on non-Linux systems.
+
+See the blurb in the README about the EBBS Mailing List if you haven't
+already seen it.
+
+Ray Rocker
+rocker@datasync.com

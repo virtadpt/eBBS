@@ -1,0 +1,12 @@
+# This is the bbs passwd file. DO NOT (!) edit it by hand unless you
+# know EXACTLY what you're doing! The records in this file MUST be all
+# the right length and formatted correctly.
+# 
+# All data in this file may be manipulated by bbs functions.
+#
+# The following entry is for the SYSOP account with all privileges and
+# password as the initial password. I highly recommend you change it.
+# Note that ~bbs/home/SYSOP and ~bbs/home/SYSOP/mail must exist for this
+# account to be functional. Admin/(A)dd User and addacct do that for you.
+#
+SYSOP       :AA6tQYSfGxd/A :000003ff:0000:System Operator          :

@@ -1,0 +1,25 @@
+# This is the main Chat client help file, used by the /h command.
+# Blank lines do get displayed. Don't use tabs in here.
+#
+
+/a <text>          Action: display <text> as an action (also /me)
+/c                 Clear: reset screen to initial state
+/e <text>          Exit: leave chat (also CTRL-C)
+/f [+,-][ls]       Flags: set or unset room flags (Op only)
+/h                 Help: get this help message
+/i <nick>          Invite: give <nick> a key to the room (Op only)
+/ignore <userid>   Ignore: squelch all messages from <userid>
+/j <room>          Join: join a new or existing room
+/k <nick>          Kick: boot <nick> back to main room (Op only)
+/l <range>         Long list: more detailed user list than /u
+/m <nick> <text>   Message: send <text> privately to <nick>
+/n <nick>          Nick: change your chatid to <nick>
+/o <nick>          Op: make <nick> an Op in this room (Op only)
+/q <userid>        Query: query an account on the bbs
+/r                 Rooms: list all active rooms, except secret rooms
+/u <range>         Users: list all users logged into the bbs
+/unignore <userid> Unignore: stop ignoring <userid>
+/w <range>         Who: list all users in chat, excluding secret rooms
+/whoin <room>      WhoIn: same as /w but only list one room
+/whois <nick>      WhoIs: identify a nick or all nicks by chatid
+/x                 Xtra Help: yet another help screen

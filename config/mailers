@@ -1,0 +1,16 @@
+# EBBS external mailers file
+#
+# Format: prefix:mailer-path
+# Prefix is the prefix to the address that identifies addresses for this
+# mailer to process. Must be no more than 12 characters.
+# Mailer-path, the path to the mailer, may include flags.
+# 
+# Be sure to set the "encoder" entry in bbconfig if binary file forwarding
+# is to work.
+# 
+# The INTERNET mailer must be included for mail, post, and file forwarding
+# from the read menus to work.
+#
+INTERNET:/usr/lib/sendmail
+# Here we let IN be an abbreviation for INTERNET.
+IN:/usr/lib/sendmail

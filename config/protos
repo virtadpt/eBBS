@@ -1,0 +1,19 @@
+# This file lists the protocols available for uploads/downloads.
+# You have to tailor this for your own site.
+# 
+# Record format:
+# proto-name:send-command:receive-command
+#
+# If the receive-command is prefixed by '|', then the destination is
+# opened as standard out of the receive-command. For example to do an
+# ASCII upload we just "cat > filename". 
+#
+# If the receive-command is prefixed by '-'. then the receive program
+# does not want filenames in the command. The default is to append the
+# filename.
+
+Kermit:/usr/bin/kermit -si:/usr/bin/kermit -ri:
+Xmodem:/usr/bin/sx:/usr/bin/rx:
+Ymodem:/usr/bin/sb:-/usr/bin/rb:
+Zmodem:/usr/bin/sz:-/usr/bin/rz:
+ASCII:cat:|cat:

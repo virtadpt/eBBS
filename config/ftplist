@@ -1,0 +1,14 @@
+# This is the list of directories that contain files for uploading and
+# downloading. All directories beneath the directories listed here
+# will also be navigable. The format of records in this file is:
+#
+# board-name:full-directory-path:optional-description-of-files
+#
+# The special board-name UPLOAD designates the directory uploads go to.
+# You can point a download directory to it too if you like.
+#
+# Examples:
+#
+# EaglesBBS:/usr/src/eagles-bbs.3.0:Eagles BBS 3.0 source
+# UPLOAD:/usr/bbs/files/incoming:
+# Source:/usr/bbs/files/source:You can quote colons like this\: see.

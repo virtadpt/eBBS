@@ -1,0 +1,11 @@
+# The logons file specifies the number of times each user may logon to
+# the bbs at once. It is here so that the default "logons" value in
+# the bbconfig file may be overridden for certain users. For instance,
+# you may allow unlimited logons by default, but set a guest account
+# to a limited number in this file. Or allow only one logon for normal
+# users with a higher logon limit for sysops given here.
+#
+# Format: userid:logon-limit
+#
+# guest:5  
+# SYSOP:0

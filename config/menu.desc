@@ -1,0 +1,326 @@
+# This file contains a description of the menu hierarchy.
+
+# Set Up the Default Environment
+
+Environment("TERM=%T,BBS_USERID=%I,BBS_USERNAME=%U,SHELL=/bin/false")
+
+# The Environment Variables can be changed upon execution of a command with
+# $exec, $exec.pause, or $exec.more by including the environment string
+# in the execution command separated by a colon, for example to have
+# a menu entry execute the vi editor and reset the terminal type to
+# a specific type you would use:
+# $exec "/usr/ucb/vi:TERM=ansi"
+#
+# Percent characters in all strings of this menu indicate substitution
+# directives.  %T substitutes the Terminal Type, %I the BBS User Id,
+# %U the BBS User Name, %E the selected editor, and %H the host from
+# which the user is logged in.
+#
+# In addition, you may specify a mode number, corresponding to an entry
+# in the ~bbs/etc/modes file, in each $exec, $exec.pause, or $exec.more
+# command. Setting up a mode in which the user cannot be paged is usually
+# a very good idea for any $exec function (see the modes files for details).
+# The mode is specified by appending a colon and the mode number after the
+# environment, or two colons and the mode number if there is no environment
+# specified. Like: $exec "/usr/ucb/vi:TERM=ansi:11" or $exec "/usr/ucb/vi::11"
+# 
+# menu "menu name", "titlestring", "menu prompt", "default action" {
+#  [command list]
+# }
+# A "*" in the titlestring field will be substituted by the bbs name.
+
+#
+# For every action in this list is a string.  Normally the string is the
+# command name that you want to execute for that particular case, for example
+# a default action of "Help" means that the Help command will be the default
+# command when you enter this menu.  You can also make the action string
+# be a function of the "new mail waiting" status.  This is indicated by
+# action strings that start with a '$' character.  When the action string
+# begins with a '$' the first character following the $ indicates the default
+# action for when no mail is waiting, and the second character indicates
+# the command for when mail is waiting.  For example in the following
+# menu code the default action of "$NM" means that when you first enter
+# the bbs you get a "New" action when no mail is waiting, and a 
+# "Mail" action for when there is mail waiting.
+# 
+menu "Main", "*", "Enter Command: ", "$NM" {
+# Each Command entry is enclosed in parens and is a list of
+# the following:
+# Command Name, Default Next Command, Next Command on Error,
+# Permission required to use this command, Function to execute this
+# command (may include one text string as argument), and 
+# finally the help string for the command.
+# 
+# Uncomment this one if you get the account scripts (separate).
+#("Join",    "Goodbye", "Goodbye",  JoinTheBBS,  $exec.pause "bin/bbsapply.pl:BBS_USERID=%I,BBS_FROMHOST=%H",
+#"(J)oin          Apply for an account on this BBS")
+("Select",  "Read",    "Select",   BoardNames,    $SelectBoard,
+"(S)elect        Set current board")
+("Boards",  "Select",  "Boards",   EnumBoards,  $Boards,
+"(B)oards        List boards on system")
+("Count",   "Select",  "Boards",   EnumBoards,  $BoardCounts,
+"(C)ount         Count posts by board")
+("Post",    "Read",    "Read",     Post,      $Post,
+"(P)ost          Post a message on current board")
+("Read",    "Read",    "Post",     OpenBoard,   $MainRead,
+"(R)ead          Enter multifunction Read Menu")
+("New",     "Talk",  "Select",   EnumBoards,  $ReadNew,
+"(N)ew           Scan for new messages")
+("Zap",     "Zap",     "Zap",      ZapBoard,  $Zap,
+"(Z)ap           Zap boards from (N)ew search")
+("Visit",   "Visit",   "Visit",    VisitBoard,  $Visit,
+"(V)isit         Mark messages as read")
+("Mail",    "$NM",    "Mail",     0,           $Menu "Mail",
+"(M)ail          Enter Mail Menu")
+("Files",   "$FM",   "Files",    0,           $Menu "Files",
+"(F)iles         Enter File Transfer Menu")
+("Talk",    "$NM",    "Talk",     0,           $Menu "Talk",
+"(T)alk          Enter Talk Menu")
+("Xyz",     "$NM",     "Xyz",      0,           $Menu "Xyz",
+"(X)yz           Utilities (Change passwd, term type)")
+("Admin",   "$AM",   "Admin",    AdminMenu,   $Menu "Admin",
+"(A)dmin         Enter Admin Menu")
+("Info",    "Info",    "Info",     GetInfoFile, $BoardInfo,
+"(I)nfo          Get Version and Copyright Information")
+("Welcome", "Welcome", "Welcome",  GetWelcome,  $Welcome,
+"(W)elcome       Look at the Welcome Screen")
+("Users",   "Talk",    "Users",    AllUsers,    $AllUsers,
+"(U)sers         List ALL accounts on this BBS")
+("Help",    "Help",    "Help",     0,           $Help,
+"(H)elp          Get this Help Screen")
+("Goodbye", "Goodbye", "Goodbye",  0,           $EndMenu,
+"(G)oodbye       Leave This BBS")
+}
+
+menu "Mail", "Personal Mail Menu", "Enter Mail Command: ", "$SN" {
+("Send",    "Send",    "Exit",     SendMail,    $MailSend,
+"(S)end          Send a mail message")
+("GroupSend", "GroupSend", "Exit", SendMail,    $GroupSend,
+"(G)roupSend     Send mail to more than one user")
+("New",     "Exit",    "Exit",     OpenMail,    $ReadNewMail,
+"(N)ew           Read new mail messages")
+("Read",    "Exit",    "Exit",     OpenMail,    $MailRead,
+"(R)ead          Enter multipurpose mail read menu")
+("Help",    "Help",    "Help",     0,           $Help,
+"(H)elp          Get this help screen")
+("Exit",    "Exit",    "Exit",     0,           $EndMenu,
+"(E)xit          Exit to main menu")
+}
+
+menu "Files", "File Transfer Menu", "Enter File Transfer Command: ", "$HE" {
+("Select",  "Download", "Exit",    FileBoardNames, $FileSelect,
+"(S)elect        Select a File Sub-board")
+("List",    "Select",   "Exit",    EnumFileBoards, $FileBoards,
+"(L)ist          List File sub-boards")
+("Protocol", "Download", "Select", SetProtocol, $SelectProtocol,
+"(P)rotocol      Select protocol for transfers")
+("Upload",  "Exit",     "Select",  Upload,      $FileUpload,
+"(U)pload        Upload a file")
+("Download", "Exit",    "Select",  Download,    $FileDownload,
+"(D)ownload      Enter multifunction download menu")
+("Help",    "Help",     "Help",    0,           $Help,
+"(H)elp          Get this help screen")
+("Exit",    "Exit",     "Exit",    0,           $EndMenu,
+"(E)xit          Exit to main menu")
+}
+
+menu "Xyz", "Misc. Utilities Menu", "Enter Xyz Menu Command: ", "$HE" {
+("Cloak",   "Exit",     "Exit",    Cloak,       $ToggleCloak,
+"(C)loak         Hide from other users")
+("Passwd",  "Exit",     "Passwd",  SetPassword, $SetPasswd,
+"(P)asswd        Change your password")
+("Name",    "Exit",     "Name",    SetUsername, $SetUsername,
+"(N)ame          Change your username")
+("Address", "Exit",     "Address", SetAddress,  $SetAddress,
+"(A)ddress       Set your e-mail address")
+("Users",   "Help",     "Help",    Users,       $OnlineUsers,
+"(U)sers         Show users currently online")
+("Terminal", "Terminal", "Terminal", SetTerminal, $SetTermtype,
+"(T)erminal      Set your terminal type")
+("Language", "Language", "Language", SetCharset,  $SetCharset,
+"(L)anguage      Set language-dependent character mapping")
+("Info",    "Exit",     "Exit",    GetOwnInfo,  $ShowOwnInfo,
+"(I)nfo          Show your passfile info")
+("Welcome", "Exit",     "Exit",    EditWelcome, $EditWelcome,
+"(W)elcome       Edit the Welcome Screen")
+("QueryEdit", "Exit",   "Exit",    SetPlan,     $QueryEdit,
+"(Q)ueryEdit     Edit your plan file")
+("Gnu",     "Gnu",      "Gnu",     GetGNUFile,  $GnuInfo,
+"(G)nu           Gnu General Public License")
+("Signature", "Exit",   "Exit",    SetSignature, $SignatureEdit,
+"(S)ignature     Edit your signature file")
+("FileEditor", "Exit", "Exit",   SetEditor,   $SelectEditor,
+"(F)ileEditor    Select editor for posts, mail, etc.")
+("Menus",      "Exit", "Exit",   SetCliOpts,  $MenuConfig,
+"(M)enus         Novice/Expert menu toggle")
+("Help",    "Help",     "Exit",    0,             $Help,
+"(H)elp          Get this help screen")
+("Exit",    "Help",     "Exit",    0,             $EndMenu,
+"(E)xit          Return to Main Menu")
+}
+
+menu "Admin", "BBS Administration Menu", "Enter Admin Command: ", "$HE" {
+("Add User",     "Add User",     "Exit",      AddAccount,    $AddAccount,
+"(A)dd User      Add an account")
+# Uncomment this one if you get the account scripts (available separately).
+#("Requests",     "Requests",     "Exit",      AddAccount,    $exec.pause "bin/bbsapprove.pl:BBS_USERID=%I",
+#"(R)equests      Process requests submitted via (J)oin")
+("Delete User",  "Delete",       "Exit",      DeleteAccount, $DeleteAccount,
+"(D)elete User   Delete an account")
+("Info",         "Info",         "Info",      SetAccountInfo, $SetUserData,
+"(I)nfo          View/change a user's passfile record")
+("Permissions",  "Permissions",  "Exit",      SetPermissions, $SetUserPerms,
+"(P)ermissions   View/change a user's permissions")
+("Xempt",        "Xempt",        "Exit",      ExemptUser,    $ToggleExempt,
+"(X)empt         Mark/unmark account to be immune to user clean")
+("New Board",    "New Board",    "New",       AddBoard,      $AddBoard,
+"(N)ew Board     Add a board")
+("Board Delete", "Board Delete", "Board ",    DeleteBoard,   $DeleteBoard,
+"(B)oard Delete  Delete a board")
+("Change Board", "Change",       "Change",    SetBoardInfo,  $ChangeBoard,
+"(C)hange Board  Set permissions/attributes of a board")
+("Managers",     "Managers",     "Managers",  SetBoardMgrs,  $SetBoardMgrs,
+"(M)anagers      Set the list of managers for a board")
+# Use this at your own risk! Note the mode of 11 -- see also ~bbs/etc/modes
+#("Shell",        "Exit",         "Exit",      ShellEscape,   $exec "/bin/sh:TERM=%T:11",
+#"(S)hell         Escape to a UNIX shell")
+("Help",         "Help",         "Help",      0,             $Help,
+"(H)elp          Get this help screen")
+("Exit",         "Exit",         "Exit",      0,             $EndMenu,
+"(E)xit          Exit to Main Menu")
+}
+
+menu "Talk", "Interactive Talk Menu", "Enter Talk Command: ", "$UE" {
+("Users",        "Users",          "Exit",        Users,   $OnlineUsers,
+"(U)sers         Show currently connected users")
+("List",         "List",           "Exit",        Users,   $ShortList,
+"(L)ist          Condensed version of (U)sers")
+("Monitor",      "Users",          "Exit",        Users,   $Monitor,
+"(M)onitor       (L)ist with automatic updates")
+("Query",        "Query",          "Query",       GetPlan, $Query,
+"(Q)uery         Read a user's profile")
+("Chat",         "Chat",           "Chat",        Chat,    $Chat,
+"(C)hat          Enter the Chat system")
+("Talk",         "Talk",           "Exit",        Page,    $Talk,
+"(T)alk          Talk to another user")
+("Pager",        "Users",          "Exit",      SetPager,  $SetPager,
+"(P)ager         Set your talk pager status")
+("Override",     "Users",          "Exit",    SetOverrides, $SetOverrides,
+"(O)verride      Allow only certain users to page")
+("Kick",         "Users",          "Exit",        Kick,    $Kick,
+"(K)ick          Kick user off of system")
+("Date",         "Date",           "Date",        0,         $ShowDate,
+"(D)ate          Show local date and time")
+("Help",         "Help",           "Help",        0,         $Help,
+"(H)elp          Get this help screen")
+("Exit",         "Exit",           "Exit",        0,         $EndMenu,
+"(E)xit          Exit to main menu")
+}
+
+# Below is the configuration for the read menus (one for posts, one for 
+# mail, one for files). You probably don't want to mess with these, but if
+# you must, here's a quick tour:
+# 
+# The first string after "readmenu" is "Mail", "Main", or "File". DO NOT
+# alter these. The next nine strings compose the stuff displayed at the 
+# top of the read menu screen. Change as you wish, but make sure you do
+# trial run to see how it looks.
+#
+# Following that are the read menu commands, each enclosed in parentheses.
+# The five fields in each one are:
+# 1. The key which invokes the command. This must be a single character
+#    optionally preceded by ^ which indicates a CTRL-key sequence. Note
+#    you may have a single command listed more than once as long as this
+#    first field is different.
+# 2. The bbs function to invoke. You may NOT use "exec" or "more" here
+#    in the main bbs menus. What you see below is all you get, there are
+#    no others.
+# 3. The per-board access required for this command. This must be one of
+#    the following: 0 (everyone), $$P (user must have post permission),
+#    or $$M (user must have board manager permission).
+# 4. The system access required for this command. These are exactly the
+#    same as in the main bbs menus -- they come from the ~bbs/etc/access
+#    file. These have priority over the third field (per-board), that is
+#    the per-board access is not checked if the system access check fails.
+# 5. A help string to be displayed by the MailReadHelp, MainReadHelp, or
+#    FileReadHelp commands. If this string is empty (""), no line for the
+#    command will be displayed by the Help commands.
+
+readmenu "Mail", 
+"Interactive Read Menu (FOR Mail)", "",
+"(n)ext Message     (p)revious Message     (r)ead Message     (e)xit Read Menu",
+"(##<cr>) go to message ##      ($) go to last message     (h) Get Help Screen", 
+"ENT", "Size", "From", "Subject", "Mail Read Menu Help Screen" {
+('r',  $MailDisplay,       0,   ReadMessage,
+"r               Read current message")
+#('^M', $MailDisplay,       0,   ReadMessage,
+#"")
+('S',  $SequentialReadMail,0,   EnumHeaders,
+"S               Sequentially read ALL mail from cursor")
+('R',  $MailReply,         $$P, SendMail,
+"R               Reply to sender of current message")
+('G',  $GroupReply,        $$P, SendMail,
+"G               Reply to sender and all other recipients")
+('d',  $MailDelete,        $$M, DeleteMessage,
+"d               Delete current message")
+('D',  $MailDelRange,      $$M, DeleteRange,
+"D               Delete range of mail messages")
+('F',  $Forward,           0,  ForwardMessage,
+"F               Forward mail to your home mailbox")
+('h',  $MailReadHelp,      0,  0,
+"h               Get this help screen")
+}
+
+readmenu "Main",
+"Interactive Read Menu", "Current Board",
+"(n)ext Message     (p)revious Message     (r)ead Message     (e)xit Read Menu",
+"##<cr> go to message ##     <CTRL-P> post a message     (h) Get a HELP screen",
+"ENT", "Size", "Owner", "Title", "Read Menu Help Screen" {
+('r',  $PostDisplay,       0,  ReadMessage,
+"r               Read current message")
+#('^M', $PostDisplay,       0,  ReadMessage,
+#"")
+('^P', $PostMessage,       $$P, Post,
+"CTRL-P          Post a message on this board")
+('s',  $ReadMenuSelect,    0,  BoardNames,
+"s               Select a new board")
+('S',  $SequentialRead,    0,  EnumHeaders,
+"S               Sequentially read new messages from cursor")
+('d',  $PostDelete,        0,  DeleteMessage,
+"d               Delete current message (if owned)")
+('D',  $PostDelRange,      $$M, DeleteRange,
+"D               Delete range of messages")
+('m',  $PostMark,          $$M, MarkMessage,
+"m               Mark message for non-deletion")
+('t',  $PostMove,          $$P,  MoveMessage,
+"t               Toss (move) post to another board")
+('E',  $PostEdit,          $$M,  ReplaceMessage,
+"E               Edit a post")     
+('F',  $Forward,           0,  ForwardMessage,
+"F               Forward post to your home mailbox")
+('h',  $MainReadHelp,      0,  0,
+"h               Get this help screen")
+}
+
+readmenu "File",
+"Interactive Download Menu", "Current File Board",
+"(n)ext File      (p)revious File      (v)iew File      (e)xit Download Menu",
+"##<cr> go to file ##          (r)ecieve file          (h) Get a HELP screen",
+"ENT", "T", "Size", "Filename", "Download Menu Help Screen" {
+('^M',  $FileChdir,         0,  FileChdir,
+"RETURN          Change directory")
+('^J',  $FileChdir,         0,  FileChdir,
+"")
+('t',   $FileReadMenuProto, 0,  SetProtocol,
+"t               Set download protocol")
+('v',   $FileView,          0,  Download,
+"v               View a text file")
+('r',   $FileReceive,       0,  Download,
+"r               Recieve (download) selected file")
+('F',   $FileForward,       0,  ForwardFile,
+"F               Mail file to yourself -- uuencodes if binary")
+('s',   $FileReadMenuSelect,0,  FileBoardNames,
+"s               Select a new file board")
+('h',   $FileReadHelp,      0,  0,
+"h               Get this help screen")
+}

@@ -1,0 +1,19 @@
+# This is the optional editor config file. You can offer alternate editors
+# to the builtin one here if you like.
+#
+# WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+# DO NOT put your favorite shell editors here. Most editors can do lots
+# of things you do NOT want bbs users to do! Like: escape to a shell,
+# pipe shell commands, write or bring up files other than the one they're 
+# editing. Your bbs can be BLOWN AWAY quite easily. You should only install 
+# editors here that you have modified to be safe. You have been warned.
+#
+# The builtin editor need only be uncommented if there are other choices too.
+# The builtin editor is always used as the default.
+#
+# The environment field uses the same format and substitution rules for 
+# %I, %U, %T, %E, %H as described in the menu.desc file.
+#
+# Format: <editor-name>:<full-path-with-flags>:<environment>:<comment>
+#
+# builtin:::Builtin editor (no path or environment needed)

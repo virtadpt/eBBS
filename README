@@ -1,0 +1,143 @@
+
+Welcome to Eagles BBS 3.1.1
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version. See the COPYING file for further information.
+
+Eagles BBS 3 is a standalone, screen-oriented bulletin board package. 
+It is the successor to Eagles BBS version 2, which was built upon Ed Luke's
+Pirates BBS package. The user interface from those programs has been kept
+intact for the most part, and some code has been reused. For the most part
+this is a complete rewrite though, to correct some basic limitations and
+inefficiencies present in Pirates and Eagles 2.x. 
+
+This software has a fairly full-featured message posting and private mail
+system, its own IRC-like chat system, and private talk facility. It has
+configurable menus allowing custom arrangement of the builtin functions 
+and any external programs you care to hook in.
+
+One thing Eagles BBS is not suited for quite yet is as a fancy shell. 
+All BBS users run as a single user, so things like shell access and
+news do not integrate very well. You should probably look elsewhere if
+BBS users are to be anything more than guests on your system.
+
+One improvement over Pirates and old Eagles is much greater runtime
+configuration. A lot of stuff you used to have to recompile to change is
+now in config files read in at runtime. All of these files are ASCII so
+they may be patched with an editor if needed. The stock config files are
+in the config directory and reside in ~bbs/etc at runtime.
+
+IMPORTANT:
+If you are already using an earlier version of EBBS 3, be SURE to read the
+ReleaseNotes and ChangeLog to see what has changed before continuing!!!
+
+All documentation has been moved into the EBBS-Guide. Please consult it
+for installation and configuration instructions, examples, and technical
+information. 
+
+The Linux ELF binary distribution, ebbs-3.1.1.bin.tar.gz, was built 
+with gcc 2.7.2, libc 5.4.33, and binutils 2.8.1.0.1. You should have 
+Linux 2.0 or later and the GNU shared C library version 5.4.x or later.
+Earlier versions of the kernel and shared C library may or may not work.
+
+The source distribution, ebbs-3.1.1.tar.gz, should build under recent 
+versions of Linux, SunOS, Solaris, AIX, Digital Unix, NextStep, A/UX, 
+Unixware, Ultrix, MachTen, HPUX, FreeBSD, and IRIX. You should go 
+through the Makefile and osdeps.h to set up the conditional defines 
+for your operating system -- see EBBS-Guide under "Building the Source" 
+for details. 
+
+If you have an operational EBBS 2.x that you want to convert to version 3,
+you'll need the source distribution and the conversion package, cvtpkg.tar.gz.
+It should be available at ftp://ftp.datasync.com/pub/ebbs or other sites. 
+Get it and see the enclosed README for the scoop on getting your existing 
+BBS converted to version 3.1.
+   
+Add-on packages (useful scripts, safe editors, etc.) are under development.
+Check the ftp site mentioned above to see what's there.
+
+
+EBBS Mailing List
+-----------------
+
+I have set up a mailing list for EBBS. There is no one on it but myself
+as I write this, but I wanted it there before distributing this code,
+so everyone who uses EBBS may be informed of security issues, bugs,
+patches, and so forth as they happen. The list is not moderated at this
+time so feel free to post for help with things. If it starts getting
+a lot of traffic I'll make a separate moderated ebbs-announce list
+for the important stuff.
+
+To subscribe: send a message to majordomo@datasync.com with 
+
+subscribe ebbs
+end
+
+in the body (not Subject) of the message. If that doesn't work
+mail me at the address at the bottom of this file.
+
+
+The TODO list
+-------------
+
+These features aren't there, but might be one day:
+
+-- Mail clean program (will be released as an add-on package)
+-- Tagging of messages in mail, for deleting or forwarding.
+-- Reading lists that allow each user to specify the order to scan the
+   boards during a new message scan.
+-- The big TODO: A split into client and server, with which the client 
+   can run on a different machine and do things like editing, menu movements,
+   shell escapes, job control, etc. locally.
+   (Update: I have a client/server pair that has all the regular features
+    except talk working. It's really slow though. As soon as I can
+    write some functional documentation for it, I'll throw it out
+    for anyone who wants to experiment with it.)
+
+
+Known Bugs
+----------
+
+-- On the File Menu, the "Current Board" is shown is not the currently
+   selected File board. It is correct on the Download read-menu.
+   (The fix isn't worth the trouble)
+-- The file-based user table is reported to have some problems. This is
+   only an issue if you do not have a shared memory facility.
+
+
+Credits
+-------
+
+Thanks to these people for helping code, test, debug, and port EBBS 3!
+Ed Luke
+Ray Seyfarth
+Bill Schwartz
+Xabier Vazquez Gallardo
+John Salmi
+Paul Snow
+Mark Roe
+Andre Schmidt
+Jon Stevens
+Thanh Ma
+Alex Schubert
+Jiri Randus
+Rob Woodard
+Mike McCallum
+Randy Austin
+Alexis Yushin
+J. Douglas Armstrong
+Everyone at the Eagle's Nest and Auggie BBS
+
+Additional tip of the hat for assistance with previous versions of EBBS:
+Guy Vega, Dominic Tynes, Jim Morton, Carey Chou
+
+------------------------------------------------------------------------------
+
+Good luck, and happy BBSing!
+
+TheRock
+In real life:  Ray Rocker
+On the air:    WQ5L
+Internet:      rocker@datasync.com

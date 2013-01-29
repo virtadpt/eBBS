@@ -1,0 +1,340 @@
+----------------------------------------------------------------------------
+
+Version 3.BETA-1
+22-MAY-1994
+
+** Initial public release
+
+-----------------------------------------------------------------------------
+
+Version 3.BETA-2
+5-JUN-1994
+
+** NEW PORTS:
+** SunOS 4.x (SUNOS) and SunOS 5.x (SOLARIS)
+
+** NEW FEATURES:
+** Added lastlogin and fromhost field to LOGININFO struct, fixed bbs_login
+   to fill them in, client displays lastlogin at bottom of welcome.
+** Fixed builtin pager (more) to handle tabs and to support backward
+   scrolling with the 'b' key.
+** Added file implementation of the user table.
+** Added and fixed up the Configurable Menus. Left old code in for now 
+   as a safety measure for now. Added menu description file, menu.desc,
+   into the config file directory. Also, changed for format of the access
+   file somewhat.
+** Added CTRL-C as an exit key from Chat.
+** Added key to symbols to Monitor display.
+** Added CTRL-U hotkey to Talk to get online user list.
+** Fixed main read menu so 'E' key works for Edit Post
+
+** BUG FIXES:
+** Some fixes to Makefile.
+** Fixed bug to cure garbage in USEREC fromhost field.
+** Fixed NULL-pointer bug in MailRead.
+** Fixed typecast bug in DoTalk.
+** Added missing lines to config/access.
+** Fixed bug causing bbs_check_mail to return true after unread mail
+   has been deleted.
+** Fixed chatd to disallow the empty string as a room name.
+** Minor fixes to /query in Chat.
+** Now highlighting the pointer in chat.
+** Fix so chat can be used after a system crash.
+** Fixed log function to seek to EOF before writing.
+** Fix to chat_process_incoming to end crashing with /w.
+
+-----------------------------------------------------------------------------
+
+Version 3.BETA-3
+20-JUN-1994
+
+** NEW PORTS:
+** IBM AIX 3.2.x (AIX), DEC OSF/1 (OSF), NeXTStep 3.2 (NEXTSTEP)
+
+** NEW FEATURES:
+** Added fromhost to possible environment in add-on programs, denoted by %H.
+** New bbslog utility for add-on scripts to use for writing to the bbs log.
+** New mkftplist.pl script for auto-generation of etc/ftplist.
+** Added mail/post signatures.
+** Increased length of Chat input line quite a bit (experimental)
+** Added escape keys (CTRL-C/CTRL-D) to getdata function to allow selected
+   prompts to be cancelled (login, chat entry, change username, etc).
+** Moved chat help text out of program into config files.
+** Added a "follow thread" option to Sequential Read.
+** Added M_PAGE mode to show users who are Paging
+** Added chat daemon configuration file, etc/chatconfig. 
+   Chat ops and restricted accounts may be listed here; they are granted
+   denied certain privileges in chat.
+   The name of the main chat room (default 'main') by also be set here.
+** Changed /op command in chat to relinquish Op status of the sender.
+** Added a welcome message to chat telling how many users/rooms are present.
+
+** BUG FIXES:
+** Fix to set mode to "Mail" when reading/sending mail.
+** Fix for pager to not insert a blank line after 80-character lines.
+** Fixed Talk/Chat to be aware of cloak and adjust it accordingly.
+** Fixed setpgrp call in chatserv to take parameters if needed.
+** Fixed bug in menu access determination.
+
+---------------
+
+Version 3.BETA-4
+5-JUL-1994
+
+** NEW PORTS:
+** Apple A/UX (AUX)
+
+** NEW FEATURES:
+** Added ability to see real names in Query, limited by showreal entry 
+   in bbconfig and C_SEEREALNAME in access.
+** Added somewhat more configurable default menu actions.
+** Moved some of the hardcoded privileged functions (see cloak, etc.)
+   into the access file for flexibility.
+** Added C_PUBLICACCT access code to identify public (shared) accounts.
+   For public accounts, the read bits are never set, and the menus in the
+   local client always default to Help.
+** Added parameter to bbs_login to allow non-public accounts to kick 
+   stranded logins if their logon limit is exceeded.
+** Added a idle timeout to the local client. The length of idle time
+   before disconnection is configurable in the bbconfig file.
+** Added File Forward function so files may be forwarded from the 
+   File Menu. Binary files are first uuencoded.
+
+** BUG FIXES:
+** Fixed bug making post #(BBS_MAX_FILES) inaccessible.
+** Added a new field to the read menu items so those functions could be
+   granted/denied en masse instead of just through Read/Post/Manage flags.
+** Added missing newline in bbs log entry for Kick.
+** Fixed bug in Monitor causing Cloak field (#) to not update.
+
+----------------
+
+Version 3.BETA-5
+19-AUG-1994
+
+** NEW FEATURES:
+** "Post now?" prompt added to Read New at the end of each board.
+** Status messages displayed during Read New to inform reader of progress
+   through each nonzapped board.
+** bbfinger utility added for remote user listing through an unused port.
+** Ability to prevent boards from being zapped has been added.
+** Install script and make install target added to distribution.
+
+** BUG FIXES:
+** Fixed some bugs with 80-character lines in chat.
+** Fixed bug causing marks on posts to not show up.
+** Upped idle timeout during login to 5 minutes if user is creating a 
+   new account.
+** Replaced calls to access(2) since they work on real uid and we are
+   probably running setuid.
+** Added display of current pager setting to the Set Pager function.
+** Now passing fatal signals on to client-side child processes to
+   clean them up.
+** Now clearing out the global user list used by Monitor so the "holes"
+   caused by users logging out are filled upon Monitor re-entry.
+
+----------------
+
+Version 3.0
+20-SEP-1994
+
+** NEW FEATURES:
+** EBBS-Guide added to distribution.
+** New chat commands: /whois, /whoin, /long.
+** Chat command /u changed back to short format.
+** Notification of new mail added to chat.
+** New FLG_SHARED account flag replaces the C_SHAREDACCT access code.
+** Environment field added to records in etc/editors.
+
+** BUG FIXES:
+** Fix to back off to file-based user table if shmat(2) fails.
+** Fixes to prevent premature chatd death: ignore SIGPIPE and set sockets
+   to nonblocking.
+** New checks to ensure only one chat daemon runs at a time.
+** Small fixes to /i, /m and /n chat commands.
+** Rearrangement of available options after reading posts.
+** Fixed delete range to reset the message pointers correctly.
+** Changed -e tests in Install.sh to the more portable -f.
+** Display of plan no longer interprets %-escapes a la printf.
+** Temporary file now gets deleted when you abort a post.
+** Fix to addacct utility to correctly add 12-letter userids.
+** Fix to delacct utility to make -c (user clean) flag work.
+** Now preventing mail from being delivered to accounts which cannot
+   read mail and preventing paging users who can't answer.
+** Fixed menu.l and gram.y to work with lex and yacc.
+** Fixed formatting of "To:" header in group mail.
+
+----------------
+
+Version 3.0.1
+29-JAN-1995
+
+** NEW PORTS:
+** Makefile and osdeps.h entries for UNIXWARE and ULTRIX.
+** Additional Makefile notes for Solaris.
+
+** NEW FEATURES:
+** Added etc/modes configuration file, bbs_get_modestrings and
+   bbs_get_modechars functions, and removed hardcoding from modes.c.
+** Added capability to set the mode in an "exec" or "exec.pause" menu action.
+** Added usertablesize parameter in bbconfig to allow changing of the
+   user limit on the fly, without having to remove the shared memory segment.
+
+** NEW FIXES:
+** bzero changed to memset in gram.y.
+** /wall command added to chat daemon (chat manager only).
+** Fixed get_remote_host to ignore stale DEAD_PROCESS entries.
+** Changed reference to 'newbbs' in Install.sh to 'bbs'.
+** Fixed non-initialization bug in delacct utility.
+** Fixed Talk function to beep every 20 seconds for the paging user also.
+** When editing using an external editor, paging is now disabled.
+** Moved include of <sys/types.h> to common.h.
+** Fixed chat bug causing long lines to not be fully broadcast.
+** Fixed off-by-one error in chatd causing text to get lost in heavy lag.
+** Added some extra checking in the chatd to better detect users who have
+   logged out of the bbs, but somehow not out of chat.
+** Fixed bug allowing duplicate chatids.
+** Relaxed validity checking of email addresses to allow +, [, ].
+** Fixed certain toupper calls to be macro-safe.
+
+----------------
+
+Version 3.1-BETA
+12-MAY-1995
+
+** NEW PORTS:
+** Makefile and osdeps.h entries for MACHTEN and HPUX
+
+** NEW FEATURES:
+** Added ability to mail send & reply operations to send mail outside the
+   bbs by prefixing the recipient userid. The external mailer to be invoked
+   is looked up in the etc/mailers file based on the prefix. 
+** Added bbsmaild utility to distribution. This may be used from the command
+   line (as bbsmail) or called by sendmail(8) to route mail into the bbs
+   mail system.
+** Added "reservedslots" entry to bbconfig. This allows any number of user
+   table slots to be reserved for sysops.
+** Readmenus are now somewhat configurable and are defined in menu.desc.
+** Added VT key support to readmenus (up/down arrows only).
+** Added a new menu navigation method that keeps the menu choices on the
+   screen at all times. This is the "Novice" menu style. The old style 
+   where one selects (H)elp to get a list is the "Expert" menu style.
+   Novice is the default; there is a new API and client function that
+   allow the user to switch back and forth on the fly.
+** Added VT key support to menus (up/down arrows). More useful in the
+   Novice menu style but also works in Expert style.
+** Added a Sequential Read function to the Mail Read menu. It reads all
+   mail, not new mail. Enhanced board Sequential Read to have a "read all
+   messages" option.
+** Added "nopunct" option to chatconfig file. If set to yes, all punctuation
+   is disallowed in chatids. '*', ':', '+' are always disallowed.
+** Added message-of-the-day feature to the chat daemon.
+** Updated EBBS-Guide to include new features listed above.
+
+** NEW FIXES:
+** Modified name completion to be able to complete dynamically by calling
+   a function, in addition to completing statically from a supplied list.
+   (required for the 2-way Internet mail)
+** Fixed chat daemon to strip out "+++" in everything passing through it.
+   Chatid and roomnames may no longer contain the '+' character.
+** Fixed a bug in PostDisplay that allowed posting on post-restricted boards.
+** Added in ifdef around some utmp stuff so SunOS et al. can stomach it.
+** Couple of fixes to Install.sh.
+
+----------------
+
+Version 3.1-BETA-2
+23-OCT-1995
+
+** NEW PORTS:
+** Makefile and osdeps.h entries for FREEBSD   
+
+** NEW FEATURES:
+** 8-bit character support and ability to save and change character set
+   mappings on the fly. Contributed by Alexis Yushin (alexis@ww.net).
+** New chat commands /ignore and /unignore. These need testing before
+   the final 3.1 release. 
+
+** NEW FIXES:
+** One-line fixes to bbsmaild.c, board.c, c_users.c, delacct.c.
+** Fixed Makefile and Install.sh to install bbsmaild with proper 
+   permissions (setuid and setgid bit on).
+** Fixed bug causing access file entries with more than one permission
+   string to not be parsed properly.
+** Bracketing characters in usernames no longer cause forwarded mail
+   and posts to bounce.
+** Uploads using ymodem and zmodem protocols work now.
+** New mail notification in chat works more than once per user session.
+
+----------------
+
+Version 3.1-BETA-3
+11-AUG-1996
+
+** NEW FEATURES:
+** Subdirectory support for file boards.
+** Added optional color support for ansi terminal type only.
+** Made the chat /ignore list persistent through chat (and login) sessions.
+** Added /date command in chat.
+** Optional feature to disallow users from ignoring chat operators.
+** Optional extra commands /roll and /think.
+
+** NEW FIXES:
+** Fix for chat /ignore to properly reset ignore list on exit.
+** Small fix for partial chat id matching.
+** Removed mkftplist.pl from distribution; no longer needed with
+   subdirectory support.
+
+----------------
+
+Version 3.1
+16-MAR-1997
+
+** NEW PORTS:
+** Makefile and osdeps.h entries for IRIX added
+
+** NEW FIXES:
+** Security fix to disallow potentially dangerous e-mail addresses
+   from being passed to sendmail. Thanks to Martin Straka
+   (straka@a1fel.feld.cvut.cz) for reporting this.
+** Some preprocessor directives rewritten to make them digestible
+   by more compilers. Thanks to Cameron Bowes for the tip.
+** Makefile and osdeps.h entries for FREEBSD fixed. Thanks to
+   Pedro Giffuni and Anthony Kehoe for assistance.
+** Fixed uninitialized variable bug causing segfaults when 
+   running external programs without a mode number in menu.desc.
+** Fixed bug causing chat ignores read in from file to not be
+   properly set up. Thanks to Randy Austin for the fix.
+** Fixed an OLD bug in construction of the To: mail header 
+   in long group mail lists.
+
+----------------
+
+Version 3.1.1
+17-AUG-1997
+
+** NEW FEATURES:
+** New PostMove command. See ReleaseNotes for what you have to fix in
+   your access and menu.desc files to make this work.
+** Menus now key on the first capital letter in the command name, if
+   present, instead of the first letter. This allows two commands to
+   begin with the same letter but bind to different keys, for example
+   "Snork" and "snorQue". Thanks Rodolfo Gonzales for the reminder.
+** Chat /kick command now accepts a message for display to the chat room,
+   coded by SirSyko.
+** Support added for cases where the remote host can be read from an
+   environment variable instead of utmp/utmpx. (I may post my patches
+   for linux login and sshd to make this work, sometime.)
+** Couple of benign mods for the still-under-development client/server
+   version of EBBS.
+** Additional notes for MachTen in Makefile, from Bill Schwartz.
+
+** NEW FIXES: 
+** Fixed a couple of hostname-related buffer overflows in chatserv.c.
+** Chat ignore lists no longer saved between sessions for users listed
+   as 'restricted' in chatconfig.
+** Hopefully corrected the problem in the 3.1 binary distribution which
+   caused addition of new accounts to fail. I could not find an error in
+   the packaging, so have to assume it was something I did in the build.
+** config/info file updated to show Version 3.1.1, something I forgot
+   to do in the 3.1 release.

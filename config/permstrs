@@ -1,0 +1,26 @@
+# This file lists the names of the permission bits.
+#
+# They are referenced in the access file to determine what permissions
+# are needed to access each bbs function.
+# 
+# The following are reserved and should NOT be altered.
+# Basic-1 through Basic-4 are given to each account automatically at creation.
+# Sysop permission is needed to alter a user's permissions.
+#
+Basic-1
+Basic-2
+Basic-3
+Basic-4
+Sysop
+#
+# The rest (up to 27 more, or 32 total) are only referenced in the
+# access and menu.desc files. You can name them as you please.
+# IMPORTANT! Never alter the order of permission names once you start 
+# using them. That is, only add to the END of the list and if you want
+# to delete a permission name, put something else in its place.
+#
+AccountMgr
+BoardMgr
+SeeCloak
+Cloak
+WelcomeMgr

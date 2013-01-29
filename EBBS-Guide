@@ -1,0 +1,1440 @@
+
+Eagles BBS 3.1 Administrator's Guide
+by Ray Rocker (rocker@datasync.com)
+
+This guide is designed to help the EBBS administrator install and 
+configure the bbs system. Some basic system administration knowledge
+is assumed. It is not intended as a general user's guide.
+
+TABLE OF CONTENTS 
+I.    Installation
+   1.  Choosing a Home Directory
+   2.  Setting the Owner and Group
+   3.  Building the Source
+   4.  Installing the Software
+II.   General Configuration
+III.  How Permissions Work
+   1.  Account Permissions and the permstrs file
+   2.  Operations and the access File
+IV.   Configuring the Menus
+   1.  Menus
+   2.  Menu Commands
+   3.  Examples
+   4.  Security Considerations
+   5.  Readmenus
+V.    Account Management
+   1.  Overview of the Account System
+   2.  Adding Accounts
+   3.  Deleting Accounts
+   4.  Modifying Account Attributes
+   5.  Limiting Logons
+VI.   Board Management
+   1.  Overview of the Board System
+   2.  Adding Boards
+   3.  Deleting Boards
+   4.  Modifying Board Attributes
+   5.  Implementation Details
+VII.  BBS Mail
+   1.  Local Mail Storage
+   2.  Internet Mail Support
+VIII. Setting up the File Area
+   1.  Setting Up Download and Upload Directories
+   2.  Setting Up Protocols
+   3.  File Transfer via Internet
+IX.   Chat System Configuration
+   1.  Chat Overview
+   2.  Technical Information
+X.    Miscellaneous
+   1.  Issue and Welcome Files
+   2.  Copyright Notice and License
+   3.  Configuring Alternate Editors
+   4.  Logging
+   5.  Mail, Post, and File Forwarding
+   6.  Modes
+   7.  8-Bit Character Support
+XI.   External Utilities
+   1.  addacct
+   2.  delacct
+   3.  bbslog
+   4.  bbfinger
+   5.  bbsmail
+Appendix A. How To Set Up a Guest Account
+
+
+I. Installation
+
+1. Choosing a Home Directory
+
+The first thing you need is a home directory for your bbs. The bbs program
+and utilities make no assumptions about where the bbs home directory is.
+This allows you maximum flexibility in placing the bbs into a suitable
+location in your file system. It also requires that the bbs program and
+utilities be able to find the bbs home directory, which I will address later.
+
+You should be sure to pick a place with plenty of room to grow. The bbs
+executables and configuration files total about 500K initially. As you add
+users and boards, the disk usage will naturally go up. Accounts and boards
+per se take very little space; posts and mail will occupy the majority of
+the space under the bbs home directory. You should also make sure you have
+plenty of inodes available in your filesystem. Each account will consume
+up to 8 inodes plus one for each mail message. Each board will consume up
+to 2 inodes plus one for each post. The total inode usage can get large in
+a hurry, so placing the bbs in a separate filesystem from other high inode
+usage software (such as a Usenet news spool) would be a good idea.
+
+The bbs home directory will be referred to as /home/bbs (where the full path
+is called for) or ~bbs (where shorthand is ok) in the rest of this document. 
+Remember to mentally substitute in your selected home directory!
+
+
+2. Setting the Owner and Group
+
+Next, you need to decide on an owner and group for the bbs. The bbs runs as 
+a single user on your system -- individual accounts do not have their own 
+uids in /etc/passwd. ~bbs and everything beneath it must be owned by the 
+same uid and gid.
+
+The simplest solution is to create a 'bbs' account in /etc/passwd. If you
+will be allowing remote access to your bbs (via telnet or rlogin) you will
+need this passwd entry anyway. It should look like this:
+
+bbs::9999:99:Bulletin Board System:/home/bbs:/home/bbs/bin/lbbs
+
+Remember to substitute your bbs home directory for "/home/bbs" in the above.
+
+The uid (9999) can be any unused value. The gid (99) can be an existing
+gid defined in /etc/group, or a good idea would be to create a bbs group:
+
+bbs::99:bbs
+
+While we're editing /etc/passwd, I've found that a bbsadm account, with
+the same uid/gid as bbs but a real login shell, is very handy.
+
+bbsadm::9999:99:BBS Administrator:/home/bbs:/bin/sh
+
+Be sure to put a secure password on this account though! Now, if you do
+the rest of the installation as bbsadm, you won't have to worry about
+file ownerships being wrong.
+
+Now you can create /home/bbs (or whatever), chown it to bbs (or whoever),
+chgrp it to bbs (or whichever), and chmod it to 770. Directory permissions
+of 770 will allow full access to the bbs owner and group and no access to
+anyone else. You might use 700 if only bbs and bbsadm are to be allowed into
+the bbs area.
+
+
+3. Building the Source
+
+If you are using the binary distribution of EBBS 3.1, this section does
+not apply. Skip ahead to "Installing the Software".
+
+Unpack the source distribution if you haven't already.
+
+First, edit osdeps.h to set the ifdefs correctly for your operating system.
+It is already set up for LINUX, SUNOS, SOLARIS, AIX, OSF/1, NEXTSTEP, and AUX.
+Any other operating systems may require more files to be edited.
+
+Second, edit the Makefile, filling in the top part as necessary. If you 
+chose not to create a bbs account in /etc/passwd, you must set INSTALLDIR
+to point to the bbs home directory. There are a couple of #defines not 
+covered in osdeps.h you can put in the CCFLAGS line to enable/disable
+optional or experimental features. Some of these are:
+
+-DCOLOR, which will allow ANSI escape sequences in config files such 
+as the welcome screen or menu.desc to be passed through. If COLOR is 
+not defined, these escapes will be stripped out. Also, the chat area
+will be somewhat colorized. -DCOLOR is present in the distribution
+Makefile.
+
+-DMENU_STANDOUT, which will cause the verbose ("newbie") menus to use 
+standout instead of the little arrows
+
+-DEXTRA_CHAT_STUFF, which will enable some extra chat commands
+that aren't listed in the chat help files
+
+-DNO_IGNORE_CHATOPS, which will make it impossible to /ignore users
+designated as chat operators. 
+
+There are others that probably aren't worthy of your attention.
+
+The y.tab.h, y.tab.c, and lex.yy.c files were generated by flex 2.4.6 and
+GNU Bison 1.22 for Linux. They are included so that you don't need flex 
+and bison to build EBBS, but may not work on all non-Linux systems. If you
+have a scanner (flex, lex, etc.) and parser generator (bison, yacc, etc.)
+installed on your system, you may delete y.tab.h, y.tab.c, and lex.yy.c
+and use the Makefile to build them. Set YACC, LEX, and YFLAGS appropriately
+in the Makefile.
+
+"make" with the supplied Makefile just builds the lbbs and chatd programs.
+
+"make install" will create all the directories you need and copy the
+executable and configuration files under ~bbs. NOTE: You should do the
+install from the bbsadm account to get all the ownerships and permissions
+right! If not you should do a "chown -R bbs ~bbs" to set them straight.
+"make install" may also be used to copy new executables to the bbs if
+you do any source modifications. It will not overwrite existing config files.
+
+Alternatively, you can do a "make bindist" and then follow the directions
+for installing the binary distribution in the following section of this Guide.
+If your /bin/sh doesn't like the install script, this may come in very handy.
+
+Other useful Makefile targets:
+"make clean" deletes all of the object files.
+"make clear" deletes all of the executables.
+"make clobber" does both a clean and clear.
+"make srcdist" makes the source distribution just like this one.
+
+
+4. Installing the Software
+
+If you successfully did a "make install" with the source distribution,
+you're done! Skip to Chapter II (General Configuration).
+
+If you have a binary distribution (either to start with, or the result of 
+"make bindist" in the above section) just copy the tar archive into ~bbs 
+and unbundle it with "tar -xvf". If you do this as someone other than the 
+bbs owner, you must set the owner and group of all extracted files to the 
+bbs owner and group, and restore the setuid/setgid bits on ~bbs/bin/lbbs.
+
+And that's that. You're ready to configure and run.
+
+
+II. General Configuration
+
+Every file used and created by the bbs will be under ~bbs. Initially,
+you have a bin subdirectory containing the local bbs shell (lbbs), the
+chat daemon (chatd), and some other utilities; an etc subdirectory 
+containing all the bbs configuration files; a home subdirectory under
+which information and mail for each bbs account will go (the SYSOP account
+is already there); a boards subdirectory under which information and 
+posts for each board will go; and a tmp directory where work files will
+be temporarily placed.
+
+The rest of this Guide is primarily concerned with the bbs configuration
+files under ~bbs/etc. Most of these files are record-oriented, and in
+these any line beginning with # is a comment. You must edit all of these
+by hand EXCEPT ~bbs/etc/passwds and ~bbs/etc/boardlist, which lbbs 
+manipulates via commands in the (A)dmin menu. You should use caution 
+when editing these two files by hand, especially ~bbs/etc/passwds, because
+the records in it must all be exactly the same length.
+
+The first one we'll look at is ~bbs/etc/bbconfig. This is the startup
+configuration and MUST be present for lbbs or any of the utilities to run.
+Recall that I pointed out in Chapter I of this Guide that these programs
+do not automatically know where the bbs home directory is (and thus where
+bbconfig is). So, to run any of these from the command line you must either
+be currently in ~bbs, OR have the environment variable BBSHOME pointing to
+/home/bbs (or whatever). So, take this time to define BBSHOME in your
+.profile or .login -- or better yet in /etc/profile or /etc/csh.login.
+
+That out of the way, look at bbconfig. Read the comments carefully.
+You set things like the name of your bbs, how many users may log in 
+at one time, the location of the bbs log file and how much stuff gets
+logged, and whether new users may create their own accounts.
+Change the default values to your liking.
+
+Now is probably a good time to log in and set the SYSOP password. 
+Execute ~bbs/bin/lbbs (you did set BBSHOME, right?). Type SYSOP at the
+"Enter userid" prompt, and 'password' (without the quotes) as the password.
+If all is well, you're in and can start navigating the menus. You should
+change that SYSOP password first thing -- enter X to go to the Xyz Menu
+and then P to change the password.
+
+If anything went wrong, you should reread Chapters I and II of this Guide 
+to make sure you didn't miss anything. If something REALLY went wrong
+(like a fatal signal telling you to Run! Flee!) you may need to fix the 
+source and rebuild lbbs. The rest of this Guide is a reference for configuring
+the menus and everything else. 
+
+
+III. How Permissions Work
+
+1. Account Permissions and the permstrs File
+
+The bbs uses a very flexible scheme for allowing and disallowing access
+to each menu function. With flexibility comes complexity, however, and 
+that is compounded by the fact that (with luck) someday in the future 
+this bbs will be distributed, with a client composed of the user interface
+and menus on a remote host and a much smaller server portion to run on
+the bbs host. 
+
+Each bbs account has a 32-bit permission mask -- the third field in each
+~bbs/etc/passwds record. It is stored as an 8-digit hexadecimal number.
+Each bit in that field corresponds to a permission name in ~bbs/etc/permstrs.
+Ten of the thirty-two permstrs are already defined. The first five of these,
+Basic-1, Basic-2, Basic-3, Basic-4, and Sysop, corresponding to the 5 least 
+significant bits in the 32-bit mask, are used by the system. You can change
+the names on these but NOT the function. Five others are used not by the
+system but only in the default access and menu.desc files.
+
+Basic-1 through Basic-4 are automatically granted to every account upon
+creation. So, when a new account is created, the third field in the passwds
+file will be 0000000f. The ready-made SYSOP account has all 10 predefined
+permissions, so its third field is 000003ff. 
+
+The strings in the permstrs file are what you see when setting the permissions
+on an account or board via the (P)ermissions, (N)ewBoard, or (C)hangeBoard
+functions on the Admin Menu. Any strings you add to ~bbs/etc/permstrs will
+replace the "(unused)" entries. 
+
+The position of the bits in the 32-bit mask are what is important -- the
+strings are just to make the Admin Menu functions friendlier. This is why
+you must ONLY add or change lines in the permstrs file, never delete them.
+For instance, if you delete the Basic-4 line, then the string "Sysop"
+becomes associated with the 4th bit in the permission setting screen. 
+But the 5th bit is the one that the system uses to determine if a user
+has full sysop permission!
+
+
+2. Operations and the access File
+
+I hope you're not lost yet, because there's more. The ~bbs/etc/access file
+lists 95 operations that the bbs can perform. Entries in this file are in
+the following format:
+
+<operation-name>={ALL | NONE | <permstr-name>[,<permstr-name>,...]}
+
+For now, just remember this: do NOT edit the <operation-name> or reorder
+the first 95 of these. In a nutshell, these serve to limit access to each
+operation to those accounts with the bits corresponding to the permstr-names
+turned on, or to nobody (NONE), or to everybody (ALL). For example:
+
+Login=ALL
+Everyone can do the login operation.
+
+AddAccount=AccountMgr 
+Only accounts with the AccountMgr bit (as shown in (A)dmin/(P)ermissions)
+can do the AddAccount operation. 
+
+GetPermStrings=AccountMgr,BoardMgr
+Accounts with either the AccountMgr or BoardMgr bit can do the 
+GetPermStrings operation.
+
+Upload=NONE
+No one can do the Upload operation (until you change the NONE).
+
+Most of these really don't mean anything at present -- they are set up 
+for the planned future client/server split -- EXCEPT to the menu system.
+The operation-names are referenced in the ~bbs/etc/menu.desc file, and
+in conjunction with that you probably want to modify some of the records
+in ~bbs/etc/access. That is the subject of the next chapter.
+
+
+IV. Configuring the Menus
+
+1. Menus
+
+The bbs menus are completely configurable via the ~bbs/etc/menu.desc file.
+There are comments in that file explaining the syntax. Here, I will try to
+explain briefly what it all means as well:
+
+A menu is defined as follows:
+menu <menu-name>, <menu-title>, <menu-prompt>, <default-action> {
+<command-entry>,
+...
+}
+
+The <menu-name> string is used in the command-entries for jumping between
+menus (more on this below).
+
+The <menu-title> is displayed in the upper left corner of the screen when
+the menu is active. A "*" here means to display the name of the bbs, as
+given in ~bbs/etc/bbconfig.
+
+The <menu-prompt> string is the prompt displayed when asking the user
+for a command.
+
+The <default-action> string specifies the first letter of the default
+command when the menu is first entered. If this string begins with $, 
+then it should have two letters following: the first is the default 
+command if no new mail is waiting, and the second is the default command
+if new mail is waiting.
+
+
+2. Menu Commands
+
+Each menu is made of one of more command entries in the following form:
+
+(<command-name>, <next-command>, <error-command>, <operation-name>,
+ <action>, <help-string>)
+
+The <command-name> string is the command to be typed by the user. 
+Each command name is bound to a single letter key which identifies
+it in the menu. Usually this key is the first letter of the <command-name>, 
+but starting in version 3.1.1, the first capital letter is used as the
+key if one is present. There is an example in the next section. 
+
+Each <command-name> must have a unique key within its menu. If you
+use the same key twice in a menu, you will get an "attempt to use
+filled slot" error on startup and the second instance will not show up.
+
+The <next-command> string is the default next command after completion 
+of this command. If an error occurs during the command, then the
+<error-command> is the default next command.
+
+The <operation-name> is where the ~bbs/etc/access file comes into play.
+For this menu command to be available to the user, their account must 
+have permission to perform the operation, as defined in ~bbs/etc/access.
+Here is where all the business with 32-bit permission values, permstrs,
+and operations comes together. Pay close attention to this example:
+
+("Welcome", "Exit",     "Exit",    EditWelcome, $EditWelcome,
+"(W)elcome       Edit the Welcome Screen")
+
+This is the menu command on the Xyz Menu through which the Welcome screen
+may be edited. The operation associated with this menu command is
+EditWelcome. EditWelcome MUST be listed in ~bbs/etc/access, or you'll 
+see a "does not grok" error when the bbs starts up. It's there though:
+
+EditWelcome=WelcomeMgr
+
+This means that a user must have the WelcomeMgr permission (bit 10 in
+the mask since it's the 10th string in ~bbs/etc/permstrs) in order to
+do the EditWelcome operation, and hence to access the (X)yz/(W)elcome
+menu command. I'll give more examples of how to use this later.
+^L
+
+The <action> string is the action to be taken by the menu command.
+These all begin with $ and refer to functions built into lbbs.
+Two special cases take parameters:
+
+$Menu takes the name of another menu defined in menu.desc and jumps to 
+that menu. For example: $Menu "Xyz" means this command should jump to 
+the Xyz menu.
+
+$exec, $exec.pause, $exec.more are available for you to hook in any
+external programs into the bbs menu system. $exec executes an arbitrary
+program. $exec.pause does the same and prompts the user to press RETURN
+before returning to the menu prompt. $exec.more pipes the program's 
+output through the builtin 'more'-like pager.
+
+The format for the $exec actions is $exec "program[:environment[:mode]]"
+For example:
+
+$exec "/bin/sh"
+Executes /bin/sh, then returns to the bbs menu prompt.
+
+$exec "/bin/sh:TERM=ansi:11"
+Same as above but adds TERM=ansi to the environment passed to /bin/sh,
+and sets the mode to 11 while the exec is in effect. By adding an entry
+for mode 11 in ~bbs/etc/modes, you can cause an arbitary string to display
+in the (U)sers list. See Chapter X under "Modes" for details.
+
+The $exec actions provide a default environment, which is defined at the
+top of the menu.desc file in the "Environment" entry. You may edit this 
+line as you like. Any environment specified in the $exec action is added 
+to, and possibly overrides, this default environment. 
+
+Information associated with the bbs user may be passed in the environment.
+%T, %I, %E, %U, and %H are escape sequences which are replaced by the
+bbs user's termtype, userid, editor, username, and remote host, respectively,
+in the constructed environment. Example:
+
+$exec "/usr/local/bin/irc:IRCNICK=%U,USER=%I,TERM=%T"
+
+Finally, the <help-string> in a menu command is the string displayed for
+the command by the builtin $Help command.
+
+
+3. Examples
+
+Now for some practical examples of how all of this mumbo-jumbo works.
+
+Example #1. How to restrict a guest account from posting.
+You'll notice an entry in the Main menu to posting messages:
+
+("Post",    "Read",    "Read",     Post,      $Post,
+"(P)ost          Post a message on current board")
+
+The operation associated with this menu command is, suprisingly enough, 
+Post. Looking in ~bbs/etc/access you'll find the 47th operation:
+
+Post=ALL
+
+You want users to be able to post by default, just not the guest account.
+So, you want to restrict the Post operation to one of the four Basic
+permissions, which all accounts get by default. Let's change it to:
+
+Post=Basic-1
+
+There. Now all you have to do is go to (A)dmin/(P)ermissions, bring up
+the screen for 'guest', and change Basic-1 from ON to OFF. Voila.
+'guest' cannot use (P)ost on the main menu. In addition, since the builtin
+reply functions also test the Post operation, guests won't get the option
+to post followups when reading either.
+
+Example #2. How to hook an IRC client into the Talk Menu.
+In menu.desc you first must add a command into menu "Talk". Fortunately
+there is no command in that menu beginning with I already, so this will
+work:
+
+("IRC",    "IRC",    "Exit",     EnterIRC,     
+$exec "/usr/local/bin/irc:IRCNICK=%U,USER=%I,TERM=%T"
+"(I)RC          Enter IRC Chat")
+
+Now, where did I get the EnterIRC operation? It's not in the access file!
+Well, you can add it. Just put it at the END of ~bbs/etc/access after the
+85 predefined operations. You can have as many of your own operations as
+you want there. What about the right-hand side? It can be ALL if you want
+everyone to be able to use IRC. Or, use one of the predefined permissions
+like Basic-1. Or, add a permission string to ~bbs/etc/permstrs and turn
+on that bit for those users you want to be able to use IRC.
+
+Example #3. How to put two commands starting with the same letter into
+a menu by using different keys.
+
+("icB",    "icB",    "Exit",     EnterICB,     
+$exec "/usr/local/bin/icb:USER=%I,TERM=%T"
+"ic(B)          Enter ICB Chat")
+
+Suppose you want to add a gateway to ICB just like you did for IRC in 
+the previous example. But, the letters I and C are already used on 
+this menu. Get around it by forcing the "IC" in ICB to lower case in
+the command name and leaving a B upper case. This tells lbbs that you 
+want to use the letter B for this menu selection. Reflect this in the 
+help string too, and voila.
+
+Hopefully the flexibility of this complex permission system is apparent
+by now, and you'll forgive me for making it so hard to understand :-)
+
+
+4. Security Considerations
+
+An important note about security. Remember that all files under ~bbs are
+owned by the bbs owner, and bbs users are running as the bbs owner. Hence
+you should take EXTREME CARE that any external program you hook in via
+$exec does not have the ability to read and write arbitrary files on your
+system, or even worse spawn a shell! (PLEASE, do NOT make root the bbs
+owner under any circumstances!)
+
+In the IRC client example above, you should know that IRC clients have
+CD and EXEC commands, which are probably not things you want users of 
+your bbs to be able to do. You should compile them, and anything else 
+that looks suspicious, out of the IRC client you make available. This
+holds true not only for IRC but any external program you choose to make 
+available, of course.
+
+
+5. Readmenus
+
+As of version 3.1, the readmenus are no longer hardcoded and are defined
+in the menu.desc file as well. These are the screens which allow the user
+to navigate through their mailbox, a board, or a file board. So, you may 
+want to rearrange, add some new keystrokes, or change the help text or the 
+general look of the readmenus. You cannot, however, add readmenus (there
+are three and only three) or invoke arbitrary commands via them like you
+can in the primary bbs menus.
+
+The syntax is similar to that of the primary bbs menus described in the
+earlier sections of this chapter, and there's probably no urgent need for
+you to mess with the readmenu configuration, so I won't go into detail here.
+
+A rundown of the syntax of the readmenus is given in ~bbs/etc/menu.desc,
+right before the first readmenu is defined.
+
+
+V. Account Management
+
+1. Account System Overview
+
+Basic information about each bbs account is recorded in the ~bbs/etc/passwds
+file. This consists of the userid, encrypted password, permission mask,
+account flags, and username.
+
+SYSOP       :AA6tQYSfGxd/A :000003ff:0000:System Operator          :
+
+IMPORTANT: Each record must be the same length, or this file may be 
+corrupted when the bbs writes out a modified record (when any of the 
+fields are changed through Xyz or Admin menu commands). Therefore manual 
+editing must be done with great care, and you should make a backup
+copy of this file before doing any manual editing. Keep this in mind
+even as I tell you a few paragraphs from now that you *have* to edit 
+it by hand to set certain account flags.
+
+Also, each account has two directories associated with it: ~bbs/home/<userid> 
+and ~bbs/home/<userid>/mail. Naturally, the user's mail is stored under 
+the latter of these. Files stored in the former include:
+
+lastlogin: The user's remote host name is written here at login time.
+overrides: User-configured list used to control Talk requests.
+plan: User-created plan file, shown by the $Query action.
+profile: Extra configuration information not stored in the passwds file.
+   Real name, address, Internet email path, editor, terminal type, and
+   upload/download protocol may be here. Certain default values (such as 
+   vt100 for the terminal type) are not stored.
+readbits: Used for saving information about which posts and mail have 
+   been read. It consists of one record for each board which has been
+   accessed, and one for mail (" $MAIL "). This is also where the new 
+   message scan configuration (currently just the $Zap action) is stored.
+signature: User-created signature file for posts and mail.
+
+
+2. Adding Accounts
+
+Accounts may be added by the $AddAccount action (Admin Menu/Add User).
+You will be prompted to enter all the pertinent information. This will
+create a record in the passwds file and create the user's directories
+and profile. You may also use the addacct utility program for adding
+accounts from the shell (see Chapter XI of this guide for details).
+
+NOTE: Just adding lines to the passwds file is NOT sufficient!
+You must add the directories too. Adding accounts in this way is not
+recommended.
+
+You can allow users to create accounts on demand by setting "new=yes" in
+~bbs/etc/bbconfig. The users can then enter "new" at the bbs login prompt
+and enter their userid, password, username, termtype, and email path.
+Real name and address are not prompted for here like they are in the
+Admin Menu (verifying them would be quite difficult anyway).
+
+
+3. Deleting Accounts
+
+Accounts may be deleted with the $DeleteAccount action (Admin Menu/
+Delete User). If you built lbbs with FULL_USER_DELETE, this can be very
+slow because the bbs will delete ALL references to the account in every 
+other user's override files and all the board manager files. You can also
+use the delacct utility to delete accounts from the shell, perhaps as a 
+background job. 
+
+The delacct utility also has a useful "user clean" feature, which allows
+accounts to be cleaned en masse based on the elapsed time since the last
+login. The exempt flag (see next paragraph) is used to mark accounts for
+exemption from user clean. See Chapter XI for instruction on use of the
+delacct utility.
+
+
+4. Modifiying Account Attributes
+
+Account information may be modified with the $SetUserData, $SetUserPerms,
+and $ToggleExempt actions (Info, Permissions, and Xempt on the Admin Menu).
+The Info command lets you change a user's userid, password, username,
+terminal type, real name, address, or email path. If the userid is changed
+and you built lbbs with FULL_USER_DELETE defined, there will be a delay 
+while the bbs goes through all override and board manager files to attempt 
+to change the userid. Otherwise it's fast, but up to you to fix the board
+manager files. The Permissions command allows the 32 permission bits to be 
+set. The strings from the permstrs file are displayed here to make things 
+clear. The Xempt command toggles a flag in the account's flags field. This 
+flag is used by the delacct utility in its user clean mode -- any accounts 
+with this flag set will be spared deletion even if they are otherwise aged 
+beyond the cutoff point.
+
+Account flags other than the exempt flag cannot be set except some by
+the user themself. The cloak flag and two talk request control flags may
+be set by the user -- or by the sysop by careful editing of the passwds
+record. Two other flags can only be toggled by editing the passwds record.
+Recall the above warning about careful editing of this file!
+
+The flags are positioned as follows, in the 4th field of the passwds record.
+This is a 16-bit hexadecimal number, and you'll have to do a little 
+hex-to-binary conversion to set the individual flags:
+
+0000 hex   --->   0000 0000 0000 0000 binary
+                  UUUU UUUU UEOP SDXC are the flags
+
+U denotes unused.
+E is the expert flag: if set, the user wants the old, non-verbose menus.
+O is the override flag: if set, users on the override list cannot Page.
+P is the pager flag: if set, users NOT on the override list cannot Page.
+S is the shared flag: if set, the account is considered "shared" and 
+  cannot receive mail, the readbits are not set, and the default menu
+  action is always "H" regardless of the menu.desc settings. This is
+  something you'll want to set for a guest-type account.
+D is the disabled flag: if set, the user cannot log in.
+X is the xempt flag described above.
+C is the cloak flag: is set, the user's presence is hidden from all users
+  except those with permission to SeeCloaked in ~bbs/etc/access.
+
+So, for example, if the flags on an account are 0000 and you want to turn
+on the shared (S) flag, you would change the flags field in their passwds
+record to 0008, which is hex for 0000 0000 0000 1000 binary.
+
+
+5. Limiting Logons
+
+The number of simultaneous logins an account may have is governed by
+the "logons" entry in the bbconfig file. By default this is set to 0,
+which means no limit. Changing it to 1 limits each user to one login
+at a time. This value can be greater than 1 as well. If a login attempt
+is made to an account that has reached its limit and the account does not
+have the shared flag, the user is given the option to kill a previous
+login to make room for a new one. This is useful when connections get
+broken abnormally and do not terminate properly. 
+
+The ~bbs/etc/logons file may be used to let certain accounts override
+the system logon limit. For example, "guest=5" in the logons file allows
+for 5 simultaneous logons to the guest account regardless of the limit
+imposed in bbconfig.
+
+
+VI. Board Management
+
+1. Overview of the Board System
+
+Information about each board (public forum) is recorded in the 
+~bbs/etc/boardlist file. This consists of the board name, 32-bit permission
+mask for read access, 32-bit permission mask for post access, and board
+description. Permission masks are in hex like account permissions.
+
+General:00000000:00000000:general board:
+
+Each board has one directory associated with it: ~bbs/boards/<boardname>.
+The board's posts are stored in this directory along with a couple of 
+optional configuration files, which are:
+
+managers: A list of userids who have manager access on the board, one
+   userid per line. This list may be edited by the $SetBoardMgrs action
+   (Managers on the Admin Menu).
+nozap: If this file exists in the board directory, then the board may not
+   be zapped via the $Zap action. This is so boards with important system
+   information will always be seen in a new message scan. The nozap file's
+   contents are not important; it may be zero length.
+
+
+2. Adding Boards
+
+Boards may be added by the $AddBoard action (Admin Menu/New Board).
+You will be prompted to enter the board name and description, and whether
+you would like to restrict access to the board. Read access and post
+access are separate: if an account lacks read access to a board, the user
+will not even be able to see or select it (hence, post access is irrelevant).
+If you choose to restrict either one, you get a screen exactly like the 
+account permission editing function. By turning any permission bit ON, 
+you require a user to have that bit in order to read or post on the board. 
+If more than one bit is set to ON, the user must have at least one of those 
+permission bits to access the board. If all of the permissions are turned
+OFF, access is granted to all accounts.
+
+NOTE: As with adding accounts, just adding lines to the boardlist file is 
+NOT sufficient to create a board. The board's directory must be created.
+Adding boards in this way is not recommended.
+
+
+3. Deleting Boards
+
+Boards may be deleted with the $DeleteBoard action (Admin Menu/Board Delete). 
+This can be a very slow action because the bbs erases the readbits entry
+for that board from each user's readbits file, as well as deleting all of
+the posts. There is no external utility (a la delacct) to remove boards from
+outside the bbs at this time. 
+
+
+4. Modifying Board Attributes
+
+Board information may be modified with the $ChangeBoard and $SetBoardMgrs
+actions (Change Board and Managers on the Admin Menu). The Change Board
+menu command lets you change a board's name, description, and both
+permission masks. If the board's name is changed, this will be very slow 
+because the bbs will have to change the board name reference in each user's
+readbits file. As mentioned above, the Managers menu command provides a
+way to edit the board managers list within the bbs.
+
+A user who is on the managers list for a board, or who has global board
+manager capability as defined by the ManageAllBoards entry in ~bbs/etc/access
+(by default, accounts with the BoardMgr permission bit), has certain extra
+privileges within the board. These extra privileges are reflected by extra
+options being given when a post is read, and extra commands being available
+in the $MainRead menu (Main Menu/Read). The extra privileges are:
+
+-- Ability to delete any post regardless of ownership.
+-- Ability to move posts to another board regardless of ownership.
+-- Ability to mark posts. A marked post is spared by the Delete Range 
+   function on the read-menu. Marks are not visible to non-managers, and
+   are permanent until unmarked.
+-- Ability to clean ranges of posts from the read-menu. Marks may be used
+   to spare individual posts inside the range.
+
+In addition, ability to edit posts may be granted to board managers by
+lowering the access for ReplaceMessage in ~bbs/etc/access. By default
+the permission required for this operation is Sysop.
+
+
+5. Implementation Details
+
+In the $ReadNew (Main Menu/New) action, which is used to scan all 
+unzapped boards, the boards are presented in the order in which they
+are listed in the boardlist file. If you would like to re-order this 
+file, it can be done with an editor.
+
+The filenames used for posts are 4-digit hexadecimal numbers. The numbers
+are not significant -- in particular, post 0001 need not be older than
+post 0002. When a board is accessed, the posts are ordered by the last
+modification time of the file, which is stored by the operating system.
+One ramification of this is that if you edit a post outside of the bbs,
+it will start appearing later in the list of posts for the board, and
+will seem out of order because the Date header still reflects the old
+date and time. The builtin post editing facility compensates for this 
+by "touching" the file back to its prior time of modification. 
+
+As of version 3.1.1, there is a $MainRead menu function for moving a
+post from one board to another. You can also do this from the shell 
+by simply moving the file from one board directory to another. The 
+Posted-By header will still reflect the original board it was posted on 
+unless you edit it, regardless of how you move it. Be sure that you move
+the file to a new filename not already in use -- for example don't move
+~bbs/boards/board1/0001 to ~bbs/boards/board2/0001 without ensuring that
+~bbs/boards/board2/0001 does not already exist. Moving a file does not 
+change the modification time in most filesystems.
+
+There is a limit of 2048 posts per board. This limit is not configurable
+at the present time. When 2048 posts accumulate on a board, any attempts
+to post will result in an error. You will probably want to keep fewer
+posts than that around due to space requirements anyway.
+
+There is a utility, delivered separately from the bbs, that cleans up
+old posts based on expiration instructions given in a config file you
+add to ~bbs/etc. It is quite helpful in conjunction with cron(8) in
+making board management painless. Look for cleanpkg.tar.gz on the ftp
+site at ftp.datasync.com in /pub/ebbs.
+
+
+VII. BBS Mail
+
+1. Local Mail Storage
+
+Mail for each account is stored in ~bbs/home/<userid>/mail. The file
+naming scheme is exactly the same as for posts -- 4 digit hex numbers.
+Record of which mail is read and unread is kept in the user's readbits
+file (~bbs/home/readbits) in the " $MAIL " record.
+
+Mail is subject to the same nonconfigurable limit of 2048 messages per
+directory as are boards. There is no Mail Clean function like earlier
+versions of EBBS had. Another script/program that I plan to write soon
+is something to run through each user's mail directory and tally up
+their messages, for purposes of sending out reminders that mailboxes 
+need to be kept clean. A script/program to do cleaning for uncooperative
+users would be nice too.
+
+Mail may not be Marked for immunity to Delete Range, because of the way
+Group Mail is implemented. A mail message sent to multiple users is only
+stored once on disk, and the other "copies" are hard links. This makes it
+impossible to use chmod to mark individual copies, as can be done on boards.
+
+
+2. Internet Mail Support
+
+Mail both to and from EBBS to the Internet, and potentially any other
+network, is now supported. Both are controlled by the ExternalMail
+setting in the ~bbs/etc/access file. Anyone without ExternalMail access 
+will neither be able to send mail outside the bbs nor will the incoming
+mailer accept mail for them.
+
+Outgoing mail (EBBS to outside) is the easier of the two to set up. 
+The file ~bbs/etc/mailers contains information the bbs needs to send 
+mail to the outside world. Records in this file are in this format:
+
+prefix:mailer-path
+
+Where "prefix" is the sequence, followed by a colon, that the bbs 
+uses to recognize outside-bound mail, and mailer-path is the executable
+(with flags if necessary) that is to handle the outgoing mail. For example,
+suppose the mailers file contains
+
+INTERNET:/usr/lib/sendmail -bm
+
+Then if a user tries to send mail to INTERNET:user@foo.bar.edu, sendmail 
+will be invoked: "/usr/lib/sendmail -bm user@foo.bar.edu".
+
+The "INTERNET" prefix has special meaning -- it is prepended to the user's
+email address as set in the system, if no prefix is there already, when
+the forwarding functions in the read menus are invoked. Note that forwarding
+access is separate from incoming/outgoing mail access -- they are controlled
+by the ForwardMessage and ForwardFile access file entries rather than the
+ExternalMail entry. See Chapter X (Mail, Post, and File Forwarding) for 
+more details.
+
+Incoming mail is also possible, but requires sendmail(8) or a similarly
+configurable mail transfer agent, and knowledge of configuration.
+The ~bbs/bin/bbsmaild program is a local mailer suitable for use in
+sendmail.cf which delivers mail to the bbs mail system. 
+
+It is recommended that you configure your sendmail.cf to direct addresses
+in the form <userid>.bbs or <userid>.bbs@your.host.name to bbsmaild, 
+to be consistent.
+
+The following are additions to sendmail.cf that work for me. I use the
+stock sendmail.cf that comes with sendmail version 8.6.12. You must both
+define the bbs mailer and add rewrite rules that recognize the <userid>.bbs
+format and direct it properly.
+
+# Handle mail for EBBS. Ruleset 98 is reserved for local stuff in 8.8.x.
+# If you don't have such a ruleset, put it somewhere in ruleset 0.
+# Please note that there are TABS instead of spaces in here.
+S98
+R$+ . bbs		$#ebbs $: $1			<userid>.bbs
+R$+ . bbs < @ $=w . >	$#ebbs $: $1			<userid>.bbs@local
+
+# This goes near the Local and Program Mailer Specifications
+# EBBS Mailer -- be sure the paths are right, and adjust the S= and R=
+# rulesets to match whatever your local mailer uses.
+Mebbs,		P=/home/bbs/bin/bbsmaild, F=DFPlmnsu, S=10, R=20/40,
+		A=bbsmaild -d /home/bbs $u
+  
+I also tried it out with a sendmail.cf from sendmail version 5.67b.
+Here are the additions you need for that version:
+
+# First add this to the section where the mailers are defined
+# Substitute the appropriate path for "/home/bbs".
+Mebbs, P=/home/bbs/bin/bbsmaild, F=DFPlmnsu, S=10, R=25/10, 
+       A=bbsmaild -d /home/bbs $u
+
+# Then add this to the top of ruleset 26.
+# EBBS: Check for bbs mail
+R<@$=w>,$+.bbs          $#ebbs $@$w $:$2                local bbs user
+R<>,@$+$=Y$+.bbs        $#ebbs $@$w $:$3                local bbs user
+
+In addition, if bbsmaild is linked to bbsmail and invoked that way, it
+may be used locally to send mail into the bbs, e.g. "bbsmail SYSOP".
+A subject or title may be added by adding -s <subject> to the command line.
+
+
+VIII. Setting up the File Area
+
+1. Setting Up Download and Upload Directories
+
+You may allow access to selected directories anywhere on your system by
+adding to the ~bbs/etc/ftplist file. For each directory containing files 
+you wish bbs users to be able to view and download, place an entry in the 
+ftplist file in the following format:
+
+<file-board-name>:<directory-path>:<description>
+
+The <file-board-name> is a 2-12 character board name consisting of letters,
+digits, dashes, and underscores -- the same restrictions as on account and
+board (forum) names. 
+
+The <directory-path> is the full path to the directory.
+
+The <description> is an optional string describing the contents of the
+directory. It is displayed by the $FileBoards (File Menu/List) action.
+
+All subdirectories beneath <directory-path> will also be navigable
+by users and the files therein may be accessed. Users will not be
+able to go above <directory-path> in the directory structure, however.
+
+At this time, file boards do not feature the access control available 
+in the forums. All users with access to the $FileDownload action
+(File Menu/Download) can view and download from the file boards.
+See Chapter X for notes regarding file forwarding via e-mail.
+
+The special file-board-name UPLOAD may be used to specify a directory
+for uploading instead of downloading. The same directory may be given
+another file-board-name if download access is desired as well. Any user
+with permission to use the $Upload function -- by default the Upload 
+access is set to NONE -- may upload files to the UPLOAD directory.
+Files may not be uploaded to directories other than the UPLOAD directory.
+
+
+2. Setting Up Protocols
+
+Text files may be viewed in the same manner as posts and mail through the
+$FileDownload action. For transferring files to and from the user's 
+machine, serial-line protocols such as kermit and zmodem may be used.
+To do this, the user must select a protocol from the list in ~bbs/etc/protos. 
+This file is already configured for Kermit, Xmodem, Ymodem, Zmodem, and ASCII, 
+but you should make sure the given paths are correct for your system.
+
+Records in the protos file are formatted like this:
+<proto-name>:<download-command>:<upload-command>
+
+For example:
+Zmodem:/usr/bin/sz -be:/usr/bin/rz -bpe:
+
+Then, if a user selects the Zmodem protocol and downloads the file foo.tar,
+the bbs would change directory to the current file board directory and invoke 
+"/usr/bin/sz -be foo.tar". To upload the file bar.c, the bbs would change
+directory to the UPLOAD directory and execute "/usr/bin/rz -bpe bar.c".
+
+If the <upload-command> begins with "|", then the destination file is
+opened as standard output of the transfer program instead of being 
+specified on the command line. The ASCII proto entry takes advantage of
+this feature to use the "cat" utility for uploading.
+
+
+3. File Transfer via Internet
+
+If users will be accessing your bbs through telnet, they should be aware
+that uploading and downloading of binary files will usually not work
+because the escape characters used by telnet may be present in a binary
+file and hence trigger telnet escapes. In general, use of serial-line 
+protocols such as Zmodem across the Internet is iffy at best. You probably 
+will want to set up anonymous ftp access to your file area if you expect 
+to serve files to Internet users.
+
+
+IX. Chat System Configuration
+
+1. Chat Overview
+
+The bbs chat system is for interactive chat between users of the bbs.
+At this time no facility for linking chat daemons between bbses is
+available. Separate rooms may be created on demand within the chat system
+a la Internet Relay Chat, as well as several other special commands
+that integrate the chat system with the rest of the bbs, such as commands
+for getting user lists and querying users.
+
+The files ~bbs/etc/chathlp.txt and ~bbs/etc/chatxhlp.txt are displayed
+by the /help and /xhelp commands, respectively. These may be edited to
+alter the output of the /help and /xhelp commands if you wish.
+
+The file ~bbs/etc/chat.motd, if it exists, is displayed along with the
+welcome message when users enter the chat system.
+
+A separate config file is used by the chat daemon: ~bbs/etc/chatconfig.
+At this time, most aspects of the chat system, such as the special chat
+commands, are only configurable by modifying the source. The configuration
+available through chatconfig is as follows:
+
+mainroom=<main-room-name>
+The main chat room, where all users start out when entering Chat, is named
+"main" by default. You can change the name of this room by specifying it
+in the mainroom entry.
+
+operators=<userid>[,<userid>,...]
+Chat operator privileges are given by the chat daemon to any userids 
+specified on this line. These users can see and enter Locked and Secret
+rooms and use /kick in all rooms including the main room. This definition
+of "operator" is different from the room operator privilege given to a
+user who creates a new room with /join. Room operators can set the Locked
+and Secret flags, use /kick, give keys (to open Locks), and transfer the
+operator privilege to other users in their room ONLY.
+
+restricted=<userid>[,<userid>,...]
+A special "restricted" mode is available for use by guest-type accounts
+if you see fit. Any accounts listed on this line cannot join other rooms
+or obtain information about the other rooms or the users in them. They
+also do not retain their ignore lists between chat sessions.
+
+nopunct=<yes or no>
+Three punctuation characters, '*', '+', and ':' are always disallowed 
+from chatids. You can disallow all the rest too (except '-' and '_')
+if you like by setting nopunct=yes in chatconfig.
+
+At this time it is not possible to restrict accounts to read-only in 
+chat. The TalkInChat and ExitChat operations are usable by anyone who
+can use the Chat operation, regardless of how they are restricted in the
+~bbs/etc/access file.
+
+
+2. Technical Information
+
+The chat daemon process (~bbs/bin/chatd) starts up when the first user
+enters Chat, and dies when the last user exits. Its function is to
+relay lines input by one chat user to the appropriate other users.
+It also handles some of the special chat commands. Upon startup, it writes
+its process-id to the file ~bbs/etc/.chatpid and its TCP port number
+to the file ~bbs/etc/.chatport. Both numbers are written as 4-digit hex
+values. These serve to synchronize the multiple lbbs processes connecting
+to the chat daemon. If problems arise for some reason, a good start at
+correcting then would be to remove the .chatpid and .chatport files and
+then kill any running bbs.chatd processes.
+
+The chat daemon uses a special handshake with the bbs program, wherein
+the daemon uses the user table (in shared memory or a temporary file)
+to verify that the connecting process is in fact a user logged into the
+bbs. For this reason, connections to the chat port by non-bbs processes 
+will not see any output, and will be closed as soon as they try to send 
+input to the daemon.
+
+
+X. Miscellaneous 
+
+1. Issue and Welcome Files
+
+The ~bbs/etc/issue file is a plain text file which is displayed by the
+lbbs program prior to the bbs login prompt. It can be used, for example,
+to show first-time users how to log in.
+
+The ~bbs/etc/welcome file is a plain text file which is shown immediately
+after a successful login and before the main menu prompt. It will be paged
+if it contains more than one screenful. Many sites like this to be exactly
+one page long and put some sort of ASCII picture there which serves to
+personify the bbs. This file may be edited from within the bbs via the
+$EditWelcome action (Xyz Menu/Welcome). 
+
+
+2. Copyright Notice and License
+
+The ~bbs/etc/COPYING file is the Free Software Foundation's GNU General
+Public License, Version 2. This is the license under which this software
+is distributed. You should read this document to understand your rights
+regarding use and distribution of this software. The $GnuInfo action
+(Xyz Menu/Gnu) allows users to view this document.
+
+The ~bbs/etc/info file is another plain text file that is used to inform
+users about the copyright and warranty associated with the bbs software.
+Per the GNU General Public License, you must make this information
+available to your users. You may add information pertaining to your
+bbs or its administration below the copyright information. The $BoardInfo 
+(Main Menu/Info) action displays this file.
+
+
+3. Configuring Alternate Editors
+
+The ~bbs/etc/editors file allows you to configure editors besides the 
+builtin editor for use by your bbs users. No such external editors are
+supplied with this distribution, but can probably be found near this
+package on your favorite ftp site. 
+
+Before offering external editors for use in the bbs, be SURE to heed the
+warnings outlined in the editors file. Most popular editors (vi and emacs
+included) allow functions which would be detrimental to the security of
+your bbs if bbs users were allowed to use them. These include shell 
+escapes, and the ability to load/view/write arbitrary files. You must
+be sure these features are disabled in any alternate editor you offer.
+
+The format of records in the editors file is as follows:
+<editor-name>:<full-path>:<environment>:<comment>
+
+The editor name is one which users can choose with the $SelectEditor
+action (Xyz Menu/FileEditor). It is saved permanently in the user's 
+profile file. The <full-path> and optional <environment> field follow
+the same format as in the $exec actions in ~bbs/etc/menu.desc (see 
+Chapter IV of this Guide).
+
+In addition to add entries to this file, you'll need to modify the
+~bbs/etc/access to allow ALL (or restricted) access to the SetEditor,
+GetEditor, and EnumEditors operations, as their access is NONE by default.
+
+You should be sure to uncomment the entry for the builtin editor if
+other editors are offered.
+
+
+4. Logging
+
+The lbbs program writes a record of certain events to a log file.
+The log file may be anywhere on your system; just specify the full path
+in the "logfile" entry in ~bbs/etc/bbconfig. The default log file is 
+~bbs/log.
+
+You may also control the volume of logging information with the "loglevel"
+entry in ~bbs/etc/bbconfig. This value may be zero or any positive integer.
+Higher values mean more events are recorded in the log -- for any given
+log level, log events associated with a lower log level are also included.
+The default log level is 1. Here is a brief summary of the events logged
+at each level (and above):
+
+Level 0: System errors are always logged.
+Level 1: Logins, failed login attempts, logouts, and account creations.
+Level 2: Administrative actions -- account deletions and modifications;
+         board creations, deletions, and modifications; manager actions
+         on boards; cloak; kick.
+Level 3: Posts, uploads, downloads, forwards.
+Level 4: Entries to Chat; Talk requests, accepts, and refusals.
+
+The log entries are designed to be easily parsed by Perl or shell scripts,
+so that statistics may be tallied and saved. Such scripts are currently
+under development and may be made available in the future.
+
+External scripts invoked from the bbs through the configurable menus may also
+write to the log file by using the bbslog utility. See Chapter XI, section 3
+for details.
+
+
+5. Mail, Post and File Forwarding
+
+Mail messages, posts, and files may be forwarded to the user's email address
+(as stored in their profile file -- see Chapter V) from the Mail Read, Main
+Read, and Download read-menus, respectively. Two operations in the access 
+file govern permission to do this:
+
+ForwardMessage, the 73rd operation, controls mail and post forwarding;
+ForwardFile, the 74th operation, controls file forwarding.
+Both are set to ALL by default.
+
+For the forwarding to work, the "INTERNET" prefix must be listed in the
+~bbs/etc/mailers file with a suitable mailer. "/usr/lib/sendmail" is the 
+default. The name of the file to be forwarded is given as the first and 
+only parameter to the mailer program. You may include flags in the mailer 
+line; for instance "/usr/lib/sendmail -odq" is recommended if you have heavy
+forwarding traffic, since this flag tells sendmail to just queue the mail
+and run it in the background later.
+
+
+6. Modes
+
+One of the fields returned for each user by the Users operation is a mode.
+This is a number which gives some idea of what the user is currently doing,
+or that the bbs doesn't know what the user is currently doing (e.g., moving
+around menus). Eleven modes are preconfigured and used by the system.
+These include modes to indicate the user is reading, posting, in mail,
+talking, or chatting. 
+
+The Talk Menu (U)sers command converts the mode into a string for display; 
+the (L)ist and (M)onitor commands convert the mode into a single character 
+for display. You can set these strings and characters to anything you wish
+by editing the ~bbs/etc/modes file. Of course, since the mode values from
+0 to 10 are used by the system, it is not wise to change their meanings,
+but, for example, you may want to use a language other than English.
+
+You also may add modes of your own to the modes file, using mode values
+11 through 31. These may be referenced in the ~bbs/etc/menu.desc file so
+that you can define modes for any external programs you hook in. See 
+Chapter IV, "Configuring The Menus" and the delivered modes file for 
+more information.
+
+
+7. 8-Bit Character Support
+
+EBBS 3.1 is able to handle 8-bit character sets cleanly. The "locale"
+entry in ~bbs/etc/bbconfig is passed to the C library setlocale(3)
+routine on systems that support it, to set the locale-dependent 
+C library routines for the primary locale of your system. See the
+setlocale(3) man pages for more information.
+
+Also, each user may select an alternate character mapping from those
+installed in the ~bbs/etc directory. A character mapping file consists
+of 256 pairs of values, one per line, in the form
+
+<input-mapping>=<output-mapping>
+
+The nth line of this file describes the input and output mappings for
+each 8-bit character n. The <input-mapping> gives the translation 
+applied to the character on input, and the <output-mapping> gives the
+translation applied on output.
+
+The SetCharset method allows the user to select a mapping. The name of
+the mapping to be entered by the user is the last part of the mapping
+file name, i.e. to select the mapping in ~bbs/etc/charset-alt, the user
+would enter "alt". No name completion or listing of available mapping
+files is available to the user; it is up to you to make this information
+available. "ascii" is a special value which sets the default mapping
+(no translation at all).
+
+
+XI. External Utilities
+
+1. addacct
+
+Syntax: addacct -i <userid> -p <password> [-u <username>] [-t <termtype>]
+                [-e <email>] [-r <realname>] [-a <address>] [-d <bbs-dir>]
+
+userid:   The logon name of the new account. Must be specified.
+          This is an alphanumeric string between 2 and 12 characters.
+          It must begin with a letter, end with a letter or number, 
+	  and may have - or _ provided they are surrounded by alphanumerics.
+
+password: The password of the new account. Must be specified. 
+	  Must be at least 1 character, at most 8 are significant.
+
+username: Up to 24 characters, free form. Defaults to userid if not specified.
+
+termtype: The terminal type for this account. Defaults to vt100.
+
+email:    Email address for this account. Optional.
+
+realname: Real name of the account's owner. Optional. Not accessable
+          through the bbs except to sysops and account managers unless
+	  showreal=yes in bbconfig, and then can be controlled with 
+	  ShowRealName in the access file.
+
+address:  Address of the account's owner. Optional. Same access restrictions
+	  as the realname field.
+
+bbs-dir:  Specifies the bbs home directory. Only needed if BBSHOME is 
+	  not set in the environment.
+
+Addacct adds a new account to ~bbs/etc/passwds and creates a home directory
+and mail directory for them. The profile information (termtype, email, 
+realname, address) is placed in ~bbs/home/<userid>/profile if given.
+
+Addacct writes an error message to stderr if it encounters an error.
+No output is written to the terminal if successful. A line is written to 
+the bbs log file if one is configured and the log level is 1 or greater.
+
+Return values: 0 == success, 1 == error, 2 == usage error.
+
+
+2. delacct
+
+Syntax: delacct [-a age] [-c] [-d bbs-dir] [-n] [-t] userid ...
+
+age:      Only meaningful with the -c flag. Specifies a time period in
+	  days which, if an account has not been used in that many days,
+          it is deleted. Default is 30 days. Any value below 7 days is
+	  illegal to prevent accidental deletion of too many accounts.
+
+-c:       Directs delacct to do a user clean. No userids may be given
+	  if -c is specified. All accounts not used within the period
+	  specified by the age parameter are deleted, except account
+	  that have been Exempted by the bbs (A)dmin/(X)empt function.
+          Sysop accounts are always spared by user clean.
+
+bbs-dir:  Specifies the bbs home directory. Only needed if BBSHOME is 
+	  not set in the environment.
+
+-n:       Directs delacct to only delete accounts which have never been
+          used. This is so you can apply a different grace period to
+          never-used accounts. Not meaningful unless -c is given also.
+
+-t:       Test mode: delacct tells which accounts would be deleted,
+          but does not delete them. 
+
+userid:   Specifies the userids to delete. These may only be given if the
+          -c flag is not, and vice versa. By not specifying -c and giving
+          userids instead, delacct will delete the specified accounts.
+          Age checks and exemption flags do not apply.
+
+Delacct deletes accounts from ~bbs/etc/passwds and removes their home and 
+mail directories.
+
+Delacct writes a line to stdout for each account it deletes, or would have
+deleted if the -t flag was given. If an error occurs a message is written
+to stdout. In addition, for every deleted account a line is written to
+the bbs log file if it is configured and the log level is at least 1.
+
+Return values: 0 == success, 1 == error, 2 == usage error.
+
+
+3. bbslog
+
+Syntax: bbslog [-d bbs-dir] [-h log-header] log-level message
+
+bbs-dir:    Specifies the bbs home directory. Only needed if BBSHOME is 
+	    not set in the environment and the current directory is not
+            the bbs home directory.
+
+log-header: An optional 1-16 character tag which is saved as the first 
+            field of the log message. The default is BBSLOG.
+
+log-level:  A numeric value specifying the importance of the message.
+            Lower numbers indicate greater importance (0 is always logged).
+            If the bbs logging level in bbconfig is less than the log-level, 
+            the message is not logged.
+
+message:    The freeform text log message.
+
+bbslog provides a way for external scripts to write messages into the bbs
+log file. The location of the file and log level are specified in the
+~bbs/etc/bbconfig file; see that file for more information.
+
+Return values: 0 == success, 1 == error, 2 == usage error.
+
+
+4. bbfinger
+
+Syntax: bbfinger [-d bbs-dir]
+
+bbfinger is a utility for displaying the list of logged-in users from 
+outside the bbs. The -d flag may be used to specify the bbs home directory.
+If this flag is not given, bbfinger will try to use $BBSHOME, or finally
+the current directory.
+
+The most obvious use for this program is as an Internet server to allow
+bbs users to get the user list remotely without logging in. Here's how to
+set this up on most systems:
+
+1. Pick an unused tcp port -- 1992, the year EBBS was born, is common --
+   and assign the 'bfinger' service to it. In /etc/services put this line:
+
+bfinger         1992/tcp                        # EBBS 3.0 finger
+
+2. Tell your inetd daemon to run bbfinger for connections to the bfinger
+   port. Add a line like so to your /etc/inetd.conf following the example of 
+   the other servers like fingerd. This example is from Slackware Linux:
+
+bfinger stream tcp nowait bbs /usr/sbin/tcpd /home/bbs/bin/bbfinger -d /home/bbs
+                  
+3. Tell inetd to reread inetd.conf by sending it SIGHUP, e.g. 
+
+kill -HUP <pid of inetd process>
+
+Now, anyone can "telnet <your host> <bfinger port>" and get the online
+user list.
+
+Notes: With a little work, this can be a full-fledged finger daemon for
+a system where the bbs is the focus of attention.
+
+Exit values: 0 on successful completion, nonzero on error.
+
+
+5. bbsmail
+
+Syntax: bbsmail [-d bbs-dir] [-s subject] user ...
+
+bbs-dir:    Specifies the bbs home directory. Only needed if BBSHOME is 
+	    not set in the environment and the current directory is not
+            the bbs home directory.
+
+subject:    Specifies the subject of the mail message. Be sure to use 
+            quotes if there is more than one word.
+
+user:       The bbs user or users the mail is to be delivered to.
+
+bbsmail must be a hard or symbolic link to the ~bbs/bin/bbsmaild program.
+bbsmaild is not designed to be invoked from the command line unless invoked
+as bbsmail. (bbsmaild expects headers to be present, bbsmail generates them.)
+
+bbsmail collects a message on standard input and places it in the bbs mailbox
+of the user or users specified, up to a limit of 32 users. Only users who
+have the ExternalMail privilege, defined in the access file, may be specified.
+Otherwise bbsmail will display an error message and the mail will not be
+delivered.
+
+Return values: 0 == success, 1 == error, 2 == usage error.
+
+
+Appendix A
+How To Set Up a Guest Account
+
+You should probably read the rest of this Guide before this example will
+make much sense. References to more detailed discussions in the main body
+will be used. This Appendix serves as a useful summary.
+
+We shall start by assuming that you have a bbs up and running with regular
+accounts, boards, and perhaps a file area.
+
+Step 1. Create the guest account (Chapter V, section 2). Use the Add User
+     command on the Admin Menu or use addacct from the command line.
+     Pick a password that's easy to guess, like 'guest'. Note: it is not
+     possible to create passwordless accounts at this time.
+
+Step 2. Restrict permissions (Chapter V, section 4). Use the Permissions
+     command on the Admin Menu. Since Basic-1 through Basic-4 are available
+     to all other users, you want to turn one or more of these OFF for guest.
+     Let's assume you turn off Basic-1 (or this one plus others).
+
+Step 3. This is the fun part. Go through ~bbs/etc/menu.desc, and make a 
+     list of the menu commands you want to make off limits to guests. 
+     Don't edit menu.desc, just note the operation names, which are the
+     4th fields in the menu commands (Chapter IV, section 2). Here are 
+     some you might consider: Post, ZapBoard, VisitBoard, AdminMenu, 
+     Cloak, SetAddress, SetUsername, SetPassword, EditWelcome, SetPlan,
+     SetSignature, SetEditor, Page, SetPager, SetOverrides, Kick.
+
+     Now go through the ~bbs/etc/access file (Chapter III, section 2)
+     and change the access from ALL to Basic-1 for each of these. Some of
+     them, like AdminMenu, Cloak, and Kick, are already restricted to
+     higher permission bits -- you don't want to alter them. Keep an eye
+     open for other things in the access file you want to restrict that
+     aren't listed in menu.desc (the Read and Download menus are not yet
+     configurable). ForwardMessage and ForwardFile are good examples.
+
+     You can make your own access file entries and deny access to whole
+     menus like the Mail and Files menus by using the same trick as for
+     the Admin Menu.
+
+Step 4. Make the account shared (Chapter V, section 4). This keeps the
+     guest account from receiving mail, keeping records of read posts,
+     and makes all menus default to (H)elp. You must edit the 'guest' 
+     record at the bottom of ~bbs/etc/passwds to do this. While you're 
+     here, you can turn off guest's pager so users cannot page them if 
+     you wish. Change the "0000" in the 4th field of the passwds record 
+     to "0008", or "0038" to restrict paging too.
+
+Step 5. Set a logon limit for guests (Chapter V, section 5). It may be
+     a good idea to limit the guest account's simultaneous logons if you
+     expect high usage. Add a line like "guest:5" in ~bbs/etc/logons.
+
+Step 6. Go through your list of boards and restrict Read access to any
+     that you don't want guests seeing (Chapter VI, section 4). Use
+     the Change Board command on the Admin Menu.
+
+Step 7. If you are allowing guests to use Chat, you may want to use the
+     "restricted chat" feature to only let them in the main room
+     (Chapter IX, section 1). Edit ~bbs/etc/chatconfig.
+
+And that should do it. Login as guest to make sure the menus look like 
+you want them to for guests. Congratulations, you're on your way to 
+becoming a Master of EBBS Configuration. :-)

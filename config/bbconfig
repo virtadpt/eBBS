@@ -1,0 +1,62 @@
+# This is the main bbs config file. It MUST exist or the bbs will not run.
+#
+# Startup information is given here in name=value form. The things you
+# specify here are:
+#
+# name: The name of your bbs. Up to 40 chars. Default=The Unknown BBS.
+# new: If yes, users can enter 'new' at the login prompt and create
+#      their own accounts. Otherwise they can't. Default=no.
+# users: How many users can log in at once. Base this on the capacity
+#      of your system, mainly on RAM. You can change this at any time,
+#      perhaps automatically based on time of day, but it MUST be less
+#      than or equal to the usertablesize parameter. Default=80.
+# reservedslots: Of the number of user slots given by the 'users' value,
+#      reserve this many for Sysops or other privileged users. The
+#      UseReserved parameter in the access file determines who may use
+#      these slots. Default=0 (no reserved slots).
+# usertablesize: The size of the shared memory user table, in users.
+#      Set this to the absolute maximum number of logins you expect to 
+#      allow on at once in the foreseeable future. IF YOU CHANGE THIS
+#      PARAMETER, you MUST shut down the bbs and chatd and remove the
+#      shared memory segment with the ipcrm utility. If you fail to do
+#      this, bad things will happen.
+# logfile: The location of the bbs log file. Default=~/log.
+# loglevel: Controls what events get written to the logfile. Default=1.
+#      Higher numbers mean more logging.
+#      System errors are always logged.
+#      Level 1: Logins, logouts, and account creations
+#      Level 2: Administrative actions
+#      Level 3: Posts, uploads, downloads, forwards.
+#      Level 4: Entries to chat/talk.
+# logons: The number of times users can log onto the bbs at once.
+#      Zero means unlimited. Use entries in the ~/etc/logons file to
+#      override this default value.
+# siglines: The maximum number of lines from a signature file to be appended
+#      to posts and mail. If zero, signature is not appended.
+#      Default=4.
+# showreal: If yes, the real name of a user is returned with a Query.
+#      Default=no. If yes, can be further restricted with the SeeRealName
+#      setting in the access file.
+# timeout: After this many minutes of no input, the local client may time 
+#      out and boot a user. This is imprecise and the actual time before 
+#      boot may range from 1 to 2 times this value. In Monitor mode, the
+#      timeout is exactly 2 times this value. Default is 0, meaning no idle 
+#      timeout. May be overridden with the NoIdleTimeout setting in the
+#      access file. 
+# encoder: Needed if you have binary files in your file section and want
+#      to allow forwarding of them. Put the path to uuencode here.
+# locale: Locale name (pathname). Default=<null>, the default locale.
+#
+name=The Unknown BBS
+new=no
+users=80
+reservedslots=0
+usertablesize=80
+logfile=log
+loglevel=1
+logons=0
+siglines=4
+showreal=no
+timeout=0
+encoder=/usr/bin/uuencode
+locale=

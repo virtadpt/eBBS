@@ -1,0 +1,16 @@
+# This is an optional configuration file used by the chat daemon.
+# 
+# mainroom: allows the name of the main chat room to be set. Default=main.
+# operators: list of chat "super-ops", separated by commas or spaces.
+#   Operators can kick out troublemakers from any room, and see/enter all
+#   locked and secret rooms.
+# restricted: list of restricted accounts that cannot use /join, /rooms,
+#   or see users in rooms besides the main room.
+# nopunct: if set to yes, disallows all punctuation characters in chatids
+#   except those allowable in userids ('_', '-'). 
+#   '*', '+', ':' are always disallowed. 
+#
+#mainroom=main
+#operators=SYSOP,anotherop
+#restricted=guest
+#nopunct=y

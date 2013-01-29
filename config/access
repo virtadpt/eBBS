@@ -1,0 +1,250 @@
+# This is the bbs access file. For each function in libbbs.a, and a few
+# more, a line here is required to tell the bbs what permissions are
+# necessary to access each function. Be sure not to delete any of the 
+# non-comments or no one will have access to some functions.
+#
+# For each function:
+# ALL means all users can do this, regardless of permission bits.
+# NONE means no users can do this. Not even Sysops.
+# Strings from the permstrs file (see it for more info) are used to 
+# restrict access to users with those permissions. For example the sysop
+# functions have "Sysop". You can list more than one, separated by commas.
+# 
+#
+# C_INIT         0   Initialize the bbs (not used)
+Initialize=ALL
+# C_CONNECT      1   Connect to the bbs
+Connect=ALL
+# C_DISCONNECT   2   Disconnect from the bbs (not used)
+Disconnect=ALL
+# C_ISSUE        3   Read the issue file
+GetIssue=ALL
+# C_WELCOME      4   Read the welcome screen
+GetWelcome=ALL
+#
+# Note: NEWLOGIN should stay ALL here. This is actually controlled in
+# bbconfig file; if "new=yes" is not in it the NEWLOGIN command will be
+# denied anyway.
+#
+# C_NEWLOGIN     5   Create a new account at the login prompt
+NewLogin=ALL
+# C_LOGIN        6   Log into the bbs
+Login=ALL
+# C_ADDACCT      7   Add an account from the Admin Menu
+AddAccount=AccountMgr
+# C_DELACCT      8   Delete an account
+DeleteAccount=AccountMgr
+# C_QUERY        9   Query an account
+Query=ALL
+# C_OWNINFO     10   Get complete info for your own account
+GetOwnInfo=ALL
+# C_GETACCT     11   Get complete info on any account
+GetAnyInfo=AccountMgr
+# C_SETMODE     12   Set your mode (Reading, Posting, Chat, etc.)
+SetMode=ALL
+# C_SETPASSWD   13   Change your password
+SetPassword=ALL
+# C_SETUSERNAME 14   Change your username
+SetUsername=ALL
+# C_SETTERMINAL 15   Change your terminal type
+SetTerminal=ALL
+# C_SETEMAIL    16   Change your email address
+SetAddress=ALL
+# C_SETPERMS    17   Change permissions for any account
+SetPermissions=Sysop
+# C_SETACCT     18   Set information for any account
+SetAccountInfo=AccountMgr
+# C_ALLUSERS    19   List all accounts 
+AllUsers=ALL
+# C_USERS       20   List all logged-in users
+Users=ALL
+# C_ALLNAMES    21   Get list of all account userids
+AllNames=ALL
+# C_NAMES       22   Get list of all logged-in userids
+Names=ALL
+# C_INFOFILE    23   Read the bbs information file
+GetInfoFile=ALL
+# C_GNUFILE     24   Read the GNU General Public License
+GetGNUFile=ALL
+# C_GETPLAN     25   Read any user's plan
+GetPlan=ALL
+# C_SETPLAN     26   Set your own plan
+SetPlan=ALL
+# C_CLOAK       27   Hide from other users
+Cloak=Cloak
+# C_EXEMPT      28   Mark an account as exempt from user cleans
+ExemptUser=AccountMgr
+# C_GETPERMSTRS 29   Get the list of permission names
+GetPermStrings=AccountMgr,BoardMgr
+# C_CHKMAIL     30   Check to see if you have unread mail
+CheckMail=ALL
+# C_MAIL        31   Send mail to other bbs users
+SendMail=ALL
+# C_OPENMAIL    32   Open for own mailbox for reading
+OpenMail=ALL
+# C_CLOSEBRD    33   Close a mailbox, board, or file board
+CloseBoard=ALL
+# C_ENUMHDRS    34   Get mail or post header information
+EnumHeaders=ALL
+# C_READMSG     35   Read a mail message or post
+ReadMessage=ALL
+#
+# Note: DELMSG, DELRANGE, MARKMSG, and REPLACEMSG should remain accessible
+# to ALL in this file, unless you want these functions to be inaccessible 
+# to the per-board Managers. A user must have Manager permission when opening
+# a board for these rights to be granted.
+#
+# C_DELMSG      36   Delete a mail message or post
+DeleteMessage=ALL
+# C_DELRANGE    37   Delete a range of mail messages or posts
+DeleteRange=ALL
+# C_MARKMSG     38   Mark a post for non-deletion
+MarkMessage=ALL
+# C_SETWELCOME  39   Modify or delete the welcome screen
+EditWelcome=WelcomeMgr
+# C_ADDBOARD    40   Create a new board for posting
+AddBoard=BoardMgr
+# C_DELBOARD    41   Delete a board and all posts on it
+DeleteBoard=BoardMgr
+# C_GETBOARD    42   Get information about a board
+GetBoardInfo=ALL
+# C_SETBOARD    43   Set information about a board
+SetBoardInfo=BoardMgr
+# C_ENUMBRDS    44   Return information about all boards
+EnumBoards=ALL
+# C_BNAMES      45   Get a list of all board names
+BoardNames=ALL
+# C_VISITBRD    46   Mark all posts on a board or boards as read
+VisitBoard=ALL
+# C_POST        47   Post a message on a board
+Post=ALL
+# Note: Since each board has its own access masks in the boardlist,
+# things like OPENBRD, GETBOARD, ENUMBRDS, etc. will only reveal the
+# boards to which the user has access. OPENBRD and TESTBRD return to 
+# the user flags telling if they have Post or Manager access.
+#
+# C_OPENBRD     48   Open a public board for reading
+OpenBoard=ALL
+# C_TESTBRD     49   Find out whether you can post on or manage a board
+TestBoard=ALL
+# C_REPLACEMSG  50   Edit a message on a board (see note above)
+ReplaceMessage=Sysop
+# C_ZAPBOARD    51   Mark a board to not be scanned for new messages
+ZapBoard=ALL
+# C_GETBMGRLIST 52   Get list of managers for a board
+GetBoardMgrs=BoardMgr
+# C_SETBMGRLIST 53   Set list of managers for a board
+SetBoardMgrs=BoardMgr
+# C_ENUMFBRDS   54   Return information about all file boards
+EnumFileBoards=ALL
+# C_FBNAMES     55   Get a list of all file board names
+FileBoardNames=ALL
+# C_OPENFBRD    56   Open a file board for viewing or downloading
+OpenFileBoard=ALL
+# C_PROTONAMES  57   Get a list of all protocol names for UL/DL
+ProtocolNames=ALL
+# C_SETPROTO    58   Set your protocol for UL/DL
+SetProtocol=ALL
+# C_UPLOAD      59   Upload a file, if an UPLOAD board is configured
+Upload=NONE
+# C_DOWNLOAD    60   Download a file from the open file board
+Download=ALL
+# NOTE: The chat client doesn't support read-only chat, nor honor the
+# value of C_EXITCHAT for obvious reasons. C_EXITCHAT and C_CHATLINE
+# are available to whoever has C_CHAT.
+#
+# C_CHAT        61   Enter the Chat system
+Chat=ALL
+# C_EXITCHAT    62   Exit the Chat system (not used)
+ExitChat=ALL
+# C_CHATLINE    63   Send a line to the chat daemon (not used)
+TalkInChat=ALL
+# C_KICK        64   Kick a logged-in user off of the system
+Kick=Sysop
+# C_TALK        65   Page another user for private talk
+Page=ALL
+# C_EXITTALK    66   Exit a private talk (not used)
+EndTalk=ALL
+# C_GETTALKREQ  67   Find out who is paging you
+GetPageRequest=ALL
+# C_TALKACCEPT  68   Accept a page
+AcceptPage=ALL
+# C_TALKREFUSE  69   Refuse a page
+RefusePage=ALL
+# C_SETPAGER    70   Set your paging status
+SetPager=ALL
+# C_GETOVERLIST 71   Get your override/deny list for paging
+GetOverrides=ALL
+# C_SETOVERLIST 72   Set your override/deny list for paging
+SetOverrides=ALL
+# C_FORWARDMSG  73   Forward a message to your email address
+ForwardMessage=ALL
+# C_FORWARDFILE 74   Forward a file to your email address
+ForwardFile=ALL
+#
+# These next three should be NONE if you aren't offering any editors
+# except the builtin one to local users (see editors file).
+#
+# C_SETEDITOR   75   Set your editor for mailing/posting
+SetEditor=NONE
+# C_GETEDITOR   76   Get the name of your last selected editor
+GetEditor=NONE
+# C_ENUMEDITORS 77   List all editors available through the bbs
+EnumEditors=NONE
+# C_GETSIGFILE  78   Signature file for mail/posts
+GetSignature=ALL
+# C_SETSIGFILE  79   Signature file
+SetSignature=ALL
+# C_GETMODESTRS 80   Get mode strings (for Users list)
+GetModeStrs=ALL
+# C_GETMODECHRS 81   Get mode characters (for short List, Monitor)
+GetModeChars=ALL
+# C_SETCLIOPTS  82   Set client options (i.e. expert/novice menus)
+SetCliOpts=ALL
+# 
+# These do not correspond to commands, but are used by the server for
+# filtering the information returned by some commands.
+#
+# C_SEEALLAINFO 83   See account flags in bbs_query, etc.
+SeeAllAccountInfo=AccountMgr
+# C_SEEALLBINFO 84   See board permission masks in bbs_get_board, etc.
+SeeAllBoardInfo=BoardMgr
+# C_ALLBOARDMGR 85   Have manager permission on all boards automatically.
+ManageAllBoards=BoardMgr
+# C_SEECLOAK    86   See cloaked users in bbs_enum_users, etc.
+SeeCloaked=SeeCloak
+# C_SEEREALNAME 87   See real names in bbs_query IF showreal is enabled.
+SeeRealName=Basic-1
+# C_NOTIMEOUT   88   Immunity to the local client's idle timer.
+NoIdleTimeout=Sysop
+# C_USERESERVED 89   Can use specially reserved user table slots.
+UseReserved=Sysop
+# C_EXTERNMAIL  90   May send/receive external e-mail.
+ExternalMail=Sysop
+#
+# These aren't used in the code but do allow the standard menus to be 
+# visible or hidden to different users. For menus you add yourself, add
+# access codes below these.
+# 
+# C_ADMINMENU   91   Admin Menu access
+AdminMenu=Sysop,AccountMgr,BoardMgr
+# C_FILEMENU    92   File Menu access
+FileMenu=ALL
+# C_MAILMENU    93   Mail Menu access
+MailMenu=ALL
+# C_TALKMENU    94   Talk Menu access
+TalkMenu=ALL
+# C_XYZMENU     95   Xyz Menu access
+XyzMenu=ALL
+# C_SETCHARSET  96   Change your character set
+SetCharset=ALL
+# C_FILECHDIR   97   Change working directory in file board
+FileChdir=ALL
+# C_MOVEMESSAGE 98   Move a post from one board to another
+MoveMessage=ALL
+#
+# More can go here, for use in configurable menus.
+# ONLY NEW ENTRIES ONLY BELOW THIS POINT!
+#
+ShellEscape=Sysop
+# etc.
